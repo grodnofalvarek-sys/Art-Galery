@@ -1,0 +1,462 @@
+{
+  "03_Гродно-4.2.jpg": {
+    "title": "Гродно • Бернардинский костёл",
+    "subtitle": "Беларусь • Архитектурный пейзаж",
+    "date": "Июнь 2025 г.",
+    "technique": "Оригинальная работа • Акварель, тушь",
+    "titleEn": "Grodno • Bernardine Monastery Church",
+    "subtitleEn": "Belarus • Architectural Landscape",
+    "dateEn": "June 2025",
+    "techniqueEn": "Original Artwork • Watercolor, Ink"
+  },
+  "25.04 Stockholm.jpg": {
+    "title": "Стокгольм • Риддархольмен",
+    "subtitle": "Швеция • Городской мотив",
+    "date": "Апрель 2025 г.",
+    "technique": "Оригинальная работа • Акварель, тушь",
+    "titleEn": "Stockholm • Riddarholmen",
+    "subtitleEn": "Sweden • Cityscape",
+    "dateEn": "April 2025",
+    "techniqueEn": "Original Artwork • Watercolor, Ink"
+  },
+  "25.06 Vilnius-2.jpg": {
+    "title": "Вильнюс • Костёл Святой Анны",
+    "subtitle": "Литва • Старый город",
+    "date": "Июнь 2025 г.",
+    "technique": "Оригинальная работа • Акварель, тушь",
+    "titleEn": "Vilnius • St. Anne's Church",
+    "subtitleEn": "Lithuania • Old Town",
+    "dateEn": "June 2025",
+    "techniqueEn": "Original Artwork • Watercolor, Ink"
+  },
+  "25.06 Vilnius.jpg": {
+    "title": "Вильнюс • Улочка Старого города",
+    "subtitle": "Литва • Старый город",
+    "date": "Июнь 2025 г.",
+    "technique": "Оригинальная работа • Акварель, тушь",
+    "titleEn": "Vilnius • Old Town Street",
+    "subtitleEn": "Lithuania • Old Town",
+    "dateEn": "June 2025",
+    "techniqueEn": "Original Artwork • Watercolor, Ink"
+  },
+  "26.02 Saphir.jpg": {
+    "title": "Курорт Сапфир • Морской мотив",
+    "subtitle": "Морской курорт • Архитектурная графика",
+    "date": "Февраль 2026 г.",
+    "technique": "Оригинальная работа • Акварель, тушь",
+    "titleEn": "Saphir Resort • Seascape Motif",
+    "subtitleEn": "Coastal Resort • Architectural Art",
+    "dateEn": "February 2026",
+    "techniqueEn": "Original Artwork • Watercolor, Ink"
+  },
+  "Ams_04 PS.jpg": {
+    "title": "Амстердам • Церковь Аудекерк",
+    "subtitle": "Нидерланды • Каналы Амстердама",
+    "date": "Май 2019 г.",
+    "technique": "Оригинальный рисунок • Графика карандашом",
+    "titleEn": "Amsterdam • Oude Kerk",
+    "subtitleEn": "Netherlands • Amsterdam Canals",
+    "dateEn": "May 2019",
+    "techniqueEn": "Original Drawing • Pencil Graphic"
+  },
+  "Basel_021jpg.jpg": {
+    "title": "Базель • Собор над Рейном",
+    "subtitle": "Швейцария • Архитектурный этюд",
+    "date": "Декабрь 2018 г.",
+    "technique": "Оригинальный рисунок • Графика карандашом",
+    "titleEn": "Basel • Cathedral over the Rhine",
+    "subtitleEn": "Switzerland • Architectural Study",
+    "dateEn": "December 2018",
+    "techniqueEn": "Original Drawing • Pencil Graphic"
+  },
+  "Bayern_02.jpg": {
+    "title": "Ротенбург-об-дер-Таубер • Плёнляйн",
+    "subtitle": "Германия • Баварский мотив",
+    "date": "Май 2020 г.",
+    "technique": "Оригинальный рисунок • Графика карандашом",
+    "titleEn": "Rothenburg ob der Tauber • Plönlein",
+    "subtitleEn": "Germany • Bavarian Motif",
+    "dateEn": "May 2020",
+    "techniqueEn": "Original Drawing • Pencil Graphic"
+  },
+  "Brussels-12.jpg": {
+    "title": "Брюссель • Собор Святых Михаила и Гудулы",
+    "subtitle": "Бельгия • Европейская графика",
+    "date": "Март 2025 г.",
+    "technique": "Цифровая живопись • Авторский арт",
+    "titleEn": "Brussels • Cathedral of St. Michael and St. Gudula",
+    "subtitleEn": "Belgium • European Graphics",
+    "dateEn": "March 2025",
+    "techniqueEn": "Digital Painting • Original Art"
+  },
+  "Budapest-2.jpg": {
+    "title": "Будапешт • Церковь Матьяша",
+    "subtitle": "Венгрия • Замковый холм",
+    "date": "Апрель 2026 г.",
+    "technique": "Оригинальная работа • Акварель, тушь",
+    "titleEn": "Budapest • Matthias Church",
+    "subtitleEn": "Hungary • Castle Hill",
+    "dateEn": "April 2026",
+    "techniqueEn": "Original Artwork • Watercolor, Ink"
+  },
+  "Budapest.jpg": {
+    "title": "Будапешт • Здание Парламента",
+    "subtitle": "Венгрия • Панорама Дуная",
+    "date": "Март 2026 г.",
+    "technique": "Оригинальная работа • Акварель, тушь",
+    "titleEn": "Budapest • Hungarian Parliament Building",
+    "subtitleEn": "Hungary • Danube Panorama",
+    "dateEn": "March 2026",
+    "techniqueEn": "Original Artwork • Watercolor, Ink"
+  },
+  "Cabin by a Lake.jpg": {
+    "title": "Домик у горного озера",
+    "subtitle": "Альпийский пейзаж • Лесная тишина",
+    "date": "Ноябрь 2024 г.",
+    "technique": "Цифровая живопись • Авторский арт",
+    "titleEn": "Mountain Lake Cabin",
+    "subtitleEn": "Alpine Landscape • Forest Serenity",
+    "dateEn": "November 2024",
+    "techniqueEn": "Digital Painting • Original Art"
+  },
+  "Castle_03_PS.jpg": {
+    "title": "Замок Корвинов • Мост через ров",
+    "subtitle": "Румыния • Готический замок Хуньяди",
+    "date": "Февраль 2021 г.",
+    "technique": "Оригинальный рисунок • Графика карандашом",
+    "titleEn": "Corvin Castle • Drawbridge over the Moat",
+    "subtitleEn": "Romania • Hunyadi Gothic Castle",
+    "dateEn": "February 2021",
+    "techniqueEn": "Original Drawing • Pencil Graphic"
+  },
+  "Castle_PS.jpg": {
+    "title": "Средневековый замок на воде",
+    "subtitle": "Архитектурный этюд • Замковый ансамбль",
+    "date": "Февраль 2021 г.",
+    "technique": "Оригинальный рисунок • Графика карандашом",
+    "titleEn": "Medieval Water Castle",
+    "subtitleEn": "Architectural Study • Castle Ensemble",
+    "dateEn": "February 2021",
+    "techniqueEn": "Original Drawing • Pencil Graphic"
+  },
+  "Cologne_1.jpg": {
+    "title": "Кёльн • Панорама Рейна и собора",
+    "subtitle": "Германия • Кёльнский собор",
+    "date": "Июль 2024 г.",
+    "technique": "Цифровая живопись • Авторский арт",
+    "titleEn": "Cologne • Rhine Panorama & Cathedral",
+    "subtitleEn": "Germany • Cologne Cathedral",
+    "dateEn": "July 2024",
+    "techniqueEn": "Digital Painting • Original Art"
+  },
+  "Dettelbach_02.jpg": {
+    "title": "Деттельбах • Крепостные башни",
+    "subtitle": "Германия • Франконский мотив",
+    "date": "Апрель 2020 г.",
+    "technique": "Оригинальный рисунок • Графика карандашом",
+    "titleEn": "Dettelbach • Fortress Towers",
+    "subtitleEn": "Germany • Franconian Motif",
+    "dateEn": "April 2020",
+    "techniqueEn": "Original Drawing • Pencil Graphic"
+  },
+  "Dettelbah.jpg": {
+    "title": "Деттельбах • Городские ворота",
+    "subtitle": "Германия • Франконский мотив",
+    "date": "Май 2024 г.",
+    "technique": "Цифровая живопись • Авторский арт",
+    "titleEn": "Dettelbach • Town Gate",
+    "subtitleEn": "Germany • Franconian Motif",
+    "dateEn": "May 2024",
+    "techniqueEn": "Digital Painting • Original Art"
+  },
+  "Drusk-1.jpg": {
+    "title": "Друскининкай • Неоготический костёл",
+    "subtitle": "Литва • Друскининкай",
+    "date": "Март 2025 г.",
+    "technique": "Цифровая живопись • Авторский арт",
+    "titleEn": "Druskininkai • Neo-Gothic Church",
+    "subtitleEn": "Lithuania • Druskininkai",
+    "dateEn": "March 2025",
+    "techniqueEn": "Digital Painting • Original Art"
+  },
+  "Faroe Island.jpg": {
+    "title": "Фареры • Водопад Мулафоссур",
+    "subtitle": "Фарерские острова • Морской пейзаж",
+    "date": "Декабрь 2024 г.",
+    "technique": "Цифровая живопись • Авторский арт",
+    "titleEn": "Faroe Islands • Coastal Cliffs",
+    "subtitleEn": "Faroe Islands • Seascape",
+    "dateEn": "December 2024",
+    "techniqueEn": "Digital Painting • Original Art"
+  },
+  "Grodno-3.jpg": {
+    "title": "Гродно • Фарный костёл",
+    "subtitle": "Беларусь • Архитектурный пейзаж",
+    "date": "Июнь 2025 г.",
+    "technique": "Оригинальная работа • Акварель, тушь",
+    "titleEn": "Grodno • Old Castle Panorama",
+    "subtitleEn": "Belarus • Castle Complex",
+    "dateEn": "June 2025",
+    "techniqueEn": "Original Artwork • Watercolor, Ink"
+  },
+  "Halfstadt 1.jpg": {
+    "title": "Гальштат • Озёрная панорама",
+    "subtitle": "Австрия • Альпийский Гальштат",
+    "date": "Сентябрь 2024 г.",
+    "technique": "Цифровая живопись • Авторский арт",
+    "titleEn": "Hallstatt • Alpine Lake Landscape",
+    "subtitleEn": "Austria • Alpine Hallstatt",
+    "dateEn": "September 2024",
+    "techniqueEn": "Digital Painting • Original Art"
+  },
+  "IMG_20250306_164506_577.jpg": {
+    "title": "Брюссель • Этюд готического собора",
+    "subtitle": "Бельгия • Европейская графика",
+    "date": "Март 2025 г.",
+    "technique": "Цифровая живопись • Авторский арт",
+    "titleEn": "Forest Brook • Autumn Motif",
+    "subtitleEn": "Autumn Study • Forest Landscape",
+    "dateEn": "March 2025",
+    "techniqueEn": "Digital Painting • Original Art"
+  },
+  "Luzern PS.jpg": {
+    "title": "Люцерн • Часовенный мост Капелльбрюкке",
+    "subtitle": "Швейцария • Озеро Люцерн",
+    "date": "Декабрь 2018 г.",
+    "technique": "Оригинальный рисунок • Графика карандашом",
+    "titleEn": "Lucerne • Chapel Bridge & Lake",
+    "subtitleEn": "Switzerland • Lake Lucerne",
+    "dateEn": "December 2018",
+    "techniqueEn": "Original Drawing • Pencil Graphic"
+  },
+  "Monschau 2.jpg": {
+    "title": "Моншау • Фахверк на реке Рур",
+    "subtitle": "Германия • Фахверковый Моншау",
+    "date": "Март 2025 г.",
+    "technique": "Цифровая живопись • Авторский арт",
+    "titleEn": "Monschau • Timber-Framed Riverfront",
+    "subtitleEn": "Germany • Timber-Framed Monschau",
+    "dateEn": "March 2025",
+    "techniqueEn": "Digital Painting • Original Art"
+  },
+  "Mountain cabin.jpg": {
+    "title": "Горная хижина ночью",
+    "subtitle": "Ночной пейзаж • Зимние Альпы",
+    "date": "Ноябрь 2024 г.",
+    "technique": "Цифровая живопись • Авторский арт",
+    "titleEn": "Mountain Retreat • Alpine Cabin",
+    "subtitleEn": "Mountain Landscape • Alpine Cabin",
+    "dateEn": "November 2024",
+    "techniqueEn": "Digital Painting • Original Art"
+  },
+  "Mountain Lake-01.jpg": {
+    "title": "Горное озеро на закате",
+    "subtitle": "Пейзаж • Отражение вершин",
+    "date": "Декабрь 2024 г.",
+    "technique": "Цифровая живопись • Авторский арт",
+    "titleEn": "Alpine Lake • Morning Serenity",
+    "subtitleEn": "Mountain Landscape • Quiet Waters",
+    "dateEn": "December 2024",
+    "techniqueEn": "Digital Painting • Original Art"
+  },
+  "Mountain Lake-02-B.jpg": {
+    "title": "Горный фьорд в сумерках",
+    "subtitle": "Пейзаж • Домик у горного озера",
+    "date": "Декабрь 2024 г.",
+    "technique": "Цифровая живопись • Авторский арт",
+    "titleEn": "Mountain Lake • Peak Reflections",
+    "subtitleEn": "Mountain Landscape • Lake Reflection",
+    "dateEn": "December 2024",
+    "techniqueEn": "Digital Painting • Original Art"
+  },
+  "Munster-2.jpg": {
+    "title": "Мюнстер • Церковь Святого Ламберта",
+    "subtitle": "Германия • Вестфальский пейзаж",
+    "date": "Июнь 2025 г.",
+    "technique": "Оригинальная работа • Акварель, тушь",
+    "titleEn": "Münster • Historical Town Center",
+    "subtitleEn": "Germany • Historical Town Center",
+    "dateEn": "June 2025",
+    "techniqueEn": "Original Artwork • Watercolor, Ink"
+  },
+  "Munster-3.jpg": {
+    "title": "Мюнстер • Собор Святого Павла",
+    "subtitle": "Германия • Вестфальский пейзаж",
+    "date": "Июнь 2025 г.",
+    "technique": "Оригинальная работа • Акварель, тушь",
+    "titleEn": "Münster • Town Hall & St. Lamberti",
+    "subtitleEn": "Germany • Westphalian Motif",
+    "dateEn": "June 2025",
+    "techniqueEn": "Original Artwork • Watercolor, Ink"
+  },
+  "Munster-4.jpg": {
+    "title": "Мюнстер • Башня Юбервассеркирхе",
+    "subtitle": "Германия • Вестфальский пейзаж",
+    "date": "Июнь 2025 г.",
+    "technique": "Оригинальная работа • Акварель, тушь",
+    "titleEn": "Münster • St. Paul's Cathedral",
+    "subtitleEn": "Germany • St. Paul's Cathedral",
+    "dateEn": "June 2025",
+    "techniqueEn": "Original Artwork • Watercolor, Ink"
+  },
+  "Riga.jpg": {
+    "title": "Рига • Ратушная площадь и Дом Черноголовых",
+    "subtitle": "Латвия • Старая Рига",
+    "date": "Ноябрь 2025 г.",
+    "technique": "Оригинальная работа • Акварель, тушь",
+    "titleEn": "Old Riga • Historical Rooftops",
+    "subtitleEn": "Latvia • Old Town Riga",
+    "dateEn": "November 2025",
+    "techniqueEn": "Original Artwork • Watercolor, Ink"
+  },
+  "Stockholm_PS.jpg": {
+    "title": "Стокгольм • Городская ратуша",
+    "subtitle": "Швеция • Набережная Меларен",
+    "date": "Апрель 2019 г.",
+    "technique": "Оригинальный рисунок • Графика карандашом",
+    "titleEn": "Stockholm • Gamla Stan Waterfront",
+    "subtitleEn": "Sweden • Gamla Stan Waterfront",
+    "dateEn": "April 2019",
+    "techniqueEn": "Original Drawing • Pencil Graphic"
+  },
+  "Stockholm-2.jpg": {
+    "title": "Стокгольм • Панорама Риддархольмена",
+    "subtitle": "Швеция • Городской мотив",
+    "date": "Июнь 2024 г.",
+    "technique": "Цифровая живопись • Авторский арт",
+    "titleEn": "Stockholm • Gamla Stan Alleys",
+    "subtitleEn": "Sweden • Cityscape",
+    "dateEn": "June 2024",
+    "techniqueEn": "Digital Painting • Original Art"
+  },
+  "Swiss_PS.jpg": {
+    "title": "Швейцарские Альпы • Горное селение",
+    "subtitle": "Швейцария • Альпийский пейзаж",
+    "date": "Декабрь 2018 г.",
+    "technique": "Оригинальный рисунок • Графика карандашом",
+    "titleEn": "Swiss Alps • Mountain Village",
+    "subtitleEn": "Switzerland • Alpine Landscape",
+    "dateEn": "December 2018",
+    "techniqueEn": "Original Drawing • Pencil Graphic"
+  },
+  "Tallin_01.jpg": {
+    "title": "Таллинн • Башня Толстая Маргарита",
+    "subtitle": "Эстония • Старый Таллинн",
+    "date": "Июль 2025 г.",
+    "technique": "Оригинальная работа • Акварель, тушь",
+    "titleEn": "Tallinn • Fat Margaret Tower",
+    "subtitleEn": "Estonia • Old Town Tallinn",
+    "dateEn": "July 2025",
+    "techniqueEn": "Original Artwork • Watercolor, Ink"
+  },
+  "Tallin_02.jpg": {
+    "title": "Таллинн • Башня Кик-ин-де-Кёк",
+    "subtitle": "Эстония • Старый Таллинн",
+    "date": "Август 2025 г.",
+    "technique": "Оригинальная работа • Акварель, тушь",
+    "titleEn": "Tallinn • Kiek in de Kök Tower",
+    "subtitleEn": "Estonia • Old Town Tallinn",
+    "dateEn": "August 2025",
+    "techniqueEn": "Original Artwork • Watercolor, Ink"
+  },
+  "Tallin_03.jpg": {
+    "title": "Таллинн • Девичья башня Neitsitorn",
+    "subtitle": "Эстония • Старый Таллинн",
+    "date": "Август 2025 г.",
+    "technique": "Оригинальная работа • Акварель, тушь",
+    "titleEn": "Tallinn • Maiden's Tower (Neitsitorn)",
+    "subtitleEn": "Estonia • Old Town Tallinn",
+    "dateEn": "August 2025",
+    "techniqueEn": "Original Artwork • Watercolor, Ink"
+  },
+  "Tallin.jpg": {
+    "title": "Таллинн • Вирусские ворота",
+    "subtitle": "Эстония • Старый Таллинн",
+    "date": "Апрель 2021 г.",
+    "technique": "Оригинальный рисунок • Графика карандашом",
+    "titleEn": "Tallinn • Viru Gate",
+    "subtitleEn": "Estonia • Old Town Tallinn",
+    "dateEn": "April 2021",
+    "techniqueEn": "Original Drawing • Pencil Graphic"
+  },
+  "Trakai2.jpg": {
+    "title": "Тракай • Островной замок и парусник",
+    "subtitle": "Литва • Островной замок",
+    "date": "Октябрь 2025 г.",
+    "technique": "Оригинальная работа • Акварель, тушь",
+    "titleEn": "Trakai • Island Castle & Sailboat",
+    "subtitleEn": "Lithuania • Island Castle",
+    "dateEn": "October 2025",
+    "techniqueEn": "Original Artwork • Watercolor, Ink"
+  },
+  "Uzės.jpg": {
+    "title": "Юзес • Арочный мост и замок",
+    "subtitle": "Франция • Прованс",
+    "date": "Апрель 2022 г.",
+    "technique": "Оригинальный рисунок • Графика карандашом",
+    "titleEn": "Uzès • Arch Bridge and Castle",
+    "subtitleEn": "France • Provence",
+    "dateEn": "April 2022",
+    "techniqueEn": "Original Drawing • Pencil Graphic"
+  },
+  "Вильнюс_PS.jpg": {
+    "title": "Вильнюс • Кафедральная площадь и колокольня",
+    "subtitle": "Литва • Старый город",
+    "date": "Май 2019 г.",
+    "technique": "Оригинальный рисунок • Графика карандашом",
+    "titleEn": "Vilnius • Cathedral Square & Bell Tower",
+    "subtitleEn": "Lithuania • Old Town",
+    "dateEn": "May 2019",
+    "techniqueEn": "Original Drawing • Pencil Graphic"
+  },
+  "Гродно1_PS.jpg": {
+    "title": "Гродно • Старый мост через Неман",
+    "subtitle": "Беларусь • Архитектурный пейзаж",
+    "date": "Май 2019 г.",
+    "technique": "Оригинальный рисунок • Графика карандашом",
+    "titleEn": "Grodno • Old Bridge over the Neman",
+    "subtitleEn": "Belarus • Architectural Landscape",
+    "dateEn": "May 2019",
+    "techniqueEn": "Original Drawing • Pencil Graphic"
+  },
+  "Гродно2_PS.jpg": {
+    "title": "Гродно • Фарный костёл и городская площадь",
+    "subtitle": "Беларусь • Исторический мотив",
+    "date": "Май 2019 г.",
+    "technique": "Оригинальный рисунок • Графика карандашом",
+    "titleEn": "Grodno • Farny Cathedral & Town Square",
+    "subtitleEn": "Belarus • Historical Motif",
+    "dateEn": "May 2019",
+    "techniqueEn": "Original Drawing • Pencil Graphic"
+  },
+  "Гродно3_PS.jpg": {
+    "title": "Гродно • Панорама крыш старого города",
+    "subtitle": "Беларусь • Архитектурный пейзаж",
+    "date": "Май 2019 г.",
+    "technique": "Оригинальный рисунок • Графика карандашом",
+    "titleEn": "Grodno • Old Town Rooftop Panorama",
+    "subtitleEn": "Belarus • Architectural Landscape",
+    "dateEn": "May 2019",
+    "techniqueEn": "Original Drawing • Pencil Graphic"
+  },
+  "Гусар_PS.jpg": {
+    "title": "Крылатый гусар на боевом коне",
+    "subtitle": "Исторический образ • Кавалерия",
+    "date": "Май 2019 г.",
+    "technique": "Оригинальный рисунок • Графика карандашом",
+    "titleEn": "Winged Hussar on Warhorse",
+    "subtitleEn": "Historical Imagery • Cavalry",
+    "dateEn": "May 2019",
+    "techniqueEn": "Original Drawing • Pencil Graphic"
+  },
+  "Старый замок.jpg": {
+    "title": "Гродно • Въезд в Старый замок",
+    "subtitle": "Беларусь • Историческая архитектура",
+    "date": "Июнь 2026 г.",
+    "technique": "Оригинальная работа • Акварель, тушь",
+    "titleEn": "Grodno • Old Castle Gatehouse",
+    "subtitleEn": "Belarus • Historical Architecture",
+    "dateEn": "June 2026",
+    "techniqueEn": "Original Artwork • Watercolor, Ink"
+  }
+}

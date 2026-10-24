@@ -1,0 +1,2623 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>3D Интерактивная Арт-Галерея</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- QRCode CDN (for multi-device viewing) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0d0e12;
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #ffffff;
+            touch-action: none;
+        }
+
+        #webgl-container {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: grab;
+        }
+
+        #webgl-container.grabbing {
+            cursor: grabbing !important;
+        }
+
+        /* Top Bar Header */
+        #top-bar {
+            position: absolute;
+            top: 16px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .brand-badge {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            pointer-events: auto;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .brand-count {
+            background: rgba(99, 102, 241, 0.35);
+            color: #c7d2fe;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 10px;
+            border: 1px solid rgba(165, 180, 252, 0.3);
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        .hud-btn {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #e2e8f0;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+
+        .hud-btn:hover, .hud-btn:active {
+            background: rgba(99, 102, 241, 0.4);
+            border-color: rgba(129, 140, 248, 0.5);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .hud-btn.active {
+            background: rgba(99, 102, 241, 0.45);
+            border-color: rgba(165, 180, 252, 0.6);
+            color: #ffffff;
+            box-shadow: 0 0 16px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Loading / Start Overlay */
+        #loader-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(23, 25, 35, 0.95) 0%, rgba(10, 11, 15, 0.98) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.6s ease;
+        }
+
+        #loader-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .loader-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 28px;
+            padding: 44px 52px;
+            max-width: 520px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            animation: fadeInCard 0.5s ease-out;
+        }
+
+        @keyframes fadeInCard {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .gallery-logo {
+            font-size: 46px;
+            margin-bottom: 12px;
+            display: inline-block;
+            filter: drop-shadow(0 4px 12px rgba(99, 102, 241, 0.4));
+        }
+
+        .loader-title {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .loader-subtitle {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 28px;
+            line-height: 1.5;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #6366f1 0%, #a855f7 100%);
+            border-radius: 8px;
+            transition: width 0.25s ease;
+            box-shadow: 0 0 16px rgba(168, 85, 247, 0.6);
+        }
+
+        .loader-counter {
+            font-size: 13px;
+            color: #cbd5e1;
+            font-variant-numeric: tabular-nums;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .loader-status-text {
+            color: #94a3b8;
+            font-size: 12px;
+            max-width: 320px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: left;
+        }
+
+        .protocol-warning {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 14px;
+            padding: 16px;
+            font-size: 13px;
+            color: #fca5a5;
+            line-height: 1.5;
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .protocol-warning.hidden {
+            display: none;
+        }
+
+        .protocol-warning p {
+            margin-bottom: 8px;
+        }
+
+        .protocol-warning code {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #fef08a;
+            font-family: monospace;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 12px 26px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.35);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(79, 70, 229, 0.5);
+        }
+
+        .key-badge {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-weight: 600;
+            font-size: 11px;
+            color: #ffffff;
+            display: inline-block;
+        }
+
+        /* Help Modal (Vertical Window) */
+        #help-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 11, 15, 0.82);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 160;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s ease;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #help-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .help-card {
+            background: linear-gradient(165deg, rgba(28, 32, 46, 0.96) 0%, rgba(17, 20, 29, 0.98) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 24px;
+            padding: 32px 36px;
+            max-width: 520px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            position: relative;
+            animation: helpCardIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            color: #f1f5f9;
+        }
+
+        @keyframes helpCardIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .help-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .help-icon {
+            font-size: 34px;
+            line-height: 1;
+        }
+
+        .help-title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            margin: 0;
+            color: #ffffff;
+        }
+
+        .help-subtitle {
+            font-size: 13px;
+            color: #94a3b8;
+            margin: 3px 0 0 0;
+        }
+
+        .help-body {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .help-section {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .help-section-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #a5b4fc;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .help-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            gap: 14px;
+            font-size: 13px;
+        }
+
+        .help-row:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .help-keys {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .help-desc {
+            color: #cbd5e1;
+            text-align: right;
+            line-height: 1.35;
+        }
+
+        .help-or {
+            color: #64748b;
+            font-size: 11px;
+        }
+
+        .help-note {
+            color: #94a3b8;
+            font-size: 11px;
+            font-style: italic;
+        }
+
+        .help-footer-hint {
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(129, 140, 248, 0.25);
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: #cbd5e1;
+            line-height: 1.45;
+            margin-top: 6px;
+        }
+
+        .help-done-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 14px;
+            cursor: pointer;
+            margin-top: 18px;
+        }
+
+        /* Crosshair (hidden for free museum cursor) */
+        #crosshair {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.65);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 5;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        #crosshair.active {
+            transform: translate(-50%, -50%) scale(2);
+            background: #818cf8;
+            box-shadow: 0 0 12px rgba(129, 140, 248, 0.8);
+        }
+
+        /* Fullscreen Zoom Modal */
+        #zoom-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 14, 0.94);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.35s ease, visibility 0.35s ease;
+            cursor: pointer;
+            padding: 24px;
+        }
+
+        #zoom-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #zoom-image {
+            max-width: 88vw;
+            max-height: 78vh;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.15);
+            transform: scale(0.92);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #zoom-modal.active #zoom-image {
+            transform: scale(1);
+        }
+
+        .zoom-info-card {
+            margin-top: 14px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 12px 28px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+            max-width: 600px;
+        }
+
+        #zoom-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.3px;
+        }
+
+        #zoom-subtitle {
+            font-size: 14px;
+            color: #a5b4fc;
+            margin-top: 3px;
+            font-weight: 500;
+        }
+
+        #zoom-date {
+            font-size: 13px;
+            color: #f1f5f9;
+            margin-top: 6px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
+        .zoom-meta {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .zoom-close-btn {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .zoom-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        /* Mobile View / QR Modal */
+        #mobile-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 11, 15, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 150;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.35s ease, visibility 0.35s ease;
+        }
+
+        #mobile-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .mobile-card {
+            background: rgba(26, 29, 39, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            padding: 36px 40px;
+            max-width: 440px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+            position: relative;
+        }
+
+        .qr-wrapper {
+            background: #ffffff;
+            padding: 16px;
+            border-radius: 16px;
+            display: inline-block;
+            margin: 20px 0;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        #qrcode canvas, #qrcode img {
+            display: block;
+            margin: 0 auto;
+        }
+
+        .url-box {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .url-text {
+            font-family: monospace;
+            font-size: 13px;
+            color: #a5b4fc;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .btn-copy {
+            background: rgba(99, 102, 241, 0.25);
+            border: 1px solid rgba(129, 140, 248, 0.4);
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .btn-copy:hover {
+            background: rgba(99, 102, 241, 0.5);
+        }
+
+        /* Mobile Touch Controls */
+        #touch-controls {
+            display: none;
+            position: absolute;
+            bottom: 24px;
+            left: 24px;
+            z-index: 15;
+            touch-action: none;
+        }
+
+        @media (max-width: 768px) {
+            #touch-controls {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            .help-card {
+                padding: 24px 20px;
+                max-height: 85vh;
+            }
+            .help-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+            .help-desc {
+                text-align: left;
+            }
+            .brand-badge {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+            .hud-btn {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+            .loader-card {
+                padding: 30px 24px;
+            }
+            .loader-title {
+                font-size: 26px;
+            }
+        }
+
+        .touch-btn {
+            width: 52px;
+            height: 52px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            color: white;
+            user-select: none;
+            touch-action: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .touch-btn:active {
+            background: rgba(99, 102, 241, 0.6);
+            transform: scale(0.95);
+        }
+
+        .touch-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        /* Hidden File Input */
+        #folder-input {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 3D WebGL Canvas Container -->
+    <div id="webgl-container"></div>
+    <div id="crosshair"></div>
+
+    <!-- Top Bar Navigation & Actions -->
+    <div id="top-bar">
+        <div class="brand-badge">
+            <span>🏛️ 3D Арт-Галерея</span>
+            <span class="brand-count" id="art-count-badge">0 работ</span>
+        </div>
+        <div class="top-actions">
+            <button class="hud-btn" id="btn-center" title="Вернуться в центр зала (Клавиша C или Пробел)">
+                🎯 В центр
+            </button>
+            <button class="hud-btn" id="btn-lighting" title="Переключить освещение: День / Вечер (Клавиша L)">
+                💡 День
+            </button>
+            <button class="hud-btn" id="btn-share" title="Поделиться галереей (QR-код и ссылка)">
+                🔗 Поделиться
+            </button>
+            <button class="hud-btn" id="btn-lang" title="Сменить язык / Switch language (RU / EN)">
+                🌐 RU
+            </button>
+            <button class="hud-btn" id="btn-open-help" title="Справка по управлению и клавишам (Клавиша H)">
+                ❓ Помощь
+            </button>
+            <button class="hud-btn" id="btn-fullscreen" title="На весь экран (F)">
+                ⛶
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading & Welcome Screen -->
+    <div id="loader-overlay">
+        <div class="loader-card">
+            <span class="gallery-logo">🏛️</span>
+            <h1 class="loader-title">3D Арт-Галерея</h1>
+            <p class="loader-subtitle">Светлый музейный зал • Матовый гранит 60x60 • Музейные экспликации</p>
+            
+            <div class="progress-bar-container" id="progress-bar-container">
+                <div class="progress-bar-fill" id="progress-bar-fill"></div>
+            </div>
+            
+            <div class="loader-counter" id="loader-counter">
+                <span class="loader-status-text" id="loader-status-text">Инициализация 3D сцены...</span>
+                <span id="loader-percent">0%</span>
+            </div>
+
+            <!-- Warning shown only if opened directly via file:// -->
+            <div class="protocol-warning hidden" id="file-protocol-warning">
+                <p>⚠️ Браузер блокирует WebGL-текстуры при открытии через протокол <code>file://</code> (двойной клик по файлу).</p>
+                <p>👉 <strong>Для полноценного авто-запуска и просмотра на телефоне:</strong> запустите файл <code>start.bat</code> в папке проекта.</p>
+                <p>Или выберите папку вручную через кнопку ниже:</p>
+                <button class="btn-primary" onclick="document.getElementById('folder-input').click()">
+                    📁 Выбрать папку с картинами
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="folder-input" webkitdirectory directory multiple accept="image/*">
+
+    <!-- Share & QR Code Modal -->
+    <div id="mobile-modal">
+        <div class="mobile-card">
+            <div class="zoom-close-btn" id="btn-close-mobile">✕</div>
+            <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 6px;">🔗 Поделиться галереей</h2>
+            <p style="font-size: 13px; color: #94a3b8; line-height: 1.4;">
+                Отсканируйте QR-код камерой смартфона или скопируйте ссылку, чтобы открыть выставку на другом устройстве:
+            </p>
+
+            <div class="qr-wrapper">
+                <div id="qrcode"></div>
+            </div>
+
+            <div class="url-box">
+                <span class="url-text" id="mobile-url-display">http://localhost:3000</span>
+                <button class="btn-copy" id="btn-copy-url">Копировать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Virtual Navigation Buttons -->
+    <div id="touch-controls">
+        <div class="touch-row">
+            <div class="touch-btn" id="btn-up">▲</div>
+        </div>
+        <div class="touch-row">
+            <div class="touch-btn" id="btn-left">◄</div>
+            <div class="touch-btn" id="btn-down">▼</div>
+            <div class="touch-btn" id="btn-right">►</div>
+        </div>
+    </div>
+
+    <!-- Fullscreen Zoom Modal -->
+    <div id="zoom-modal">
+        <div class="zoom-close-btn" id="btn-close-zoom">✕</div>
+        <img id="zoom-image" src="" alt="Zoomed Artwork">
+        <div class="zoom-info-card">
+            <div id="zoom-title">Название картины</div>
+            <div id="zoom-subtitle">Регион / Жанр</div>
+            <div class="zoom-date" id="zoom-date">Октябрь 2025 г.</div>
+            <div class="zoom-meta" id="zoom-meta">Оригинальная работа • Авторская графика</div>
+        </div>
+    </div>
+
+    <!-- Help & Navigation Guide Modal -->
+    <div id="help-modal">
+        <div class="help-card">
+            <div class="zoom-close-btn" id="btn-close-help" title="Закрыть (Esc)">✕</div>
+            
+            <div class="help-header">
+                <span class="help-icon">🏛️</span>
+                <div>
+                    <h2 class="help-title">Управление галереей</h2>
+                    <p class="help-subtitle">Навигация для ПК, MacBook и сенсорных экранов</p>
+                </div>
+            </div>
+
+            <div class="help-body">
+                <!-- Group 1: Mouse & MacBook Trackpad -->
+                <div class="help-section">
+                    <div class="help-section-title">🖱️ Мышь и трекпад MacBook</div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">Колесо мыши</span> <span class="help-or">или</span> <span class="key-badge">2 пальца</span></div>
+                        <div class="help-desc">Шаг вперёд к картинам / назад в зал</div>
+                    </div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">Зажать ЛКМ / ПКМ / СКМ</span></div>
+                        <div class="help-desc">Панорамный обзор зала (горизонт зафиксирован)</div>
+                    </div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">Клик ЛКМ</span></div>
+                        <div class="help-desc">Раскрыть картину или табличку в полный экран</div>
+                    </div>
+                </div>
+
+                <!-- Group 2: Keyboard -->
+                <div class="help-section">
+                    <div class="help-section-title">⌨️ Клавиатура</div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">←</span> <span class="key-badge">→</span> <span class="help-or">/</span> <span class="key-badge">A</span> <span class="key-badge">D</span></div>
+                        <div class="help-desc">Обход зала по кругу вдоль стены</div>
+                    </div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">↑</span> <span class="key-badge">↓</span> <span class="help-note">(удержание)</span></div>
+                        <div class="help-desc">Взгляд на верхний / нижний ярус (автовозврат)</div>
+                    </div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">Пробел</span> <span class="help-or">/</span> <span class="key-badge">C</span></div>
+                        <div class="help-desc">Вернуться в центр зала</div>
+                    </div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">L</span></div>
+                        <div class="help-desc">Переключить освещение: День / Вечер</div>
+                    </div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">F</span></div>
+                        <div class="help-desc">Полноэкранный режим</div>
+                    </div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">H</span> <span class="help-or">/</span> <span class="key-badge">Esc</span></div>
+                        <div class="help-desc">Открыть / закрыть справку</div>
+                    </div>
+                </div>
+
+                <!-- Group 3: Touchscreens -->
+                <div class="help-section">
+                    <div class="help-section-title">📱 Смартфоны и планшеты</div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">1 палец (свайп)</span></div>
+                        <div class="help-desc">Осмотр зала вокруг себя</div>
+                    </div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">2 пальца (щипок)</span> <span class="help-or">/</span> <span class="key-badge">▲ ▼</span></div>
+                        <div class="help-desc">Шаг вперёд к картинам / назад</div>
+                    </div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">Тап по картине</span></div>
+                        <div class="help-desc">Просмотр картины в высоком качестве</div>
+                    </div>
+                </div>
+
+                <!-- Hint footer -->
+                <div class="help-footer-hint">
+                    💡 <em>В зале можно подойти к стенам на 0.8 м, чтобы свободно читать экспликации и рассматривать мазки картин прямо со стены.</em>
+                </div>
+            </div>
+
+            <button class="btn-primary help-done-btn" id="btn-close-help-done">Понятно</button>
+        </div>
+    </div>
+
+    <script>
+        /* ----------------------------------------------------
+           1. BUILT-IN FALLBACK PAINTINGS LIST (46 WORKS)
+        ---------------------------------------------------- */
+        const DEFAULT_PAINTINGS = [
+            { "name": "03_Гродно-4.2.jpg", "url": "thumbs/03_%D0%93%D1%80%D0%BE%D0%B4%D0%BD%D0%BE-4.2.jpg", "fullUrl": "03_%D0%93%D1%80%D0%BE%D0%B4%D0%BD%D0%BE-4.2.jpg", "title": "Гродно • Бернардинский костёл", "subtitle": "Беларусь • Архитектурный пейзаж", "date": "Июнь 2025 г.", "technique": "Оригинальная работа • Акварель, тушь" },
+            { "name": "25.04 Stockholm.jpg", "url": "thumbs/25.04%20Stockholm.jpg", "fullUrl": "25.04%20Stockholm.jpg", "title": "Стокгольм • Риддархольмен", "subtitle": "Швеция • Городской мотив", "date": "Апрель 2025 г.", "technique": "Оригинальная работа • Акварель, тушь" },
+            { "name": "25.06 Vilnius-2.jpg", "url": "thumbs/25.06%20Vilnius-2.jpg", "fullUrl": "25.06%20Vilnius-2.jpg", "title": "Вильнюс • Костёл Святой Анны", "subtitle": "Литва • Старый город", "date": "Июнь 2025 г.", "technique": "Оригинальная работа • Акварель, тушь" },
+            { "name": "25.06 Vilnius.jpg", "url": "thumbs/25.06%20Vilnius.jpg", "fullUrl": "25.06%20Vilnius.jpg", "title": "Вильнюс • Улочка Старого города", "subtitle": "Литва • Старый город", "date": "Июнь 2025 г.", "technique": "Оригинальная работа • Акварель, тушь" },
+            { "name": "26.02 Saphir.jpg", "url": "thumbs/26.02%20Saphir.jpg", "fullUrl": "26.02%20Saphir.jpg", "title": "Курорт Сапфир • Морской мотив", "subtitle": "Морской курорт • Архитектурная графика", "date": "Февраль 2026 г.", "technique": "Оригинальная работа • Акварель, тушь" },
+            { "name": "Ams_04 PS.jpg", "url": "thumbs/Ams_04%20PS.jpg", "fullUrl": "Ams_04%20PS.jpg", "title": "Амстердам • Церковь Аудекерк", "subtitle": "Нидерланды • Каналы Амстердама", "date": "Май 2019 г.", "technique": "Оригинальный рисунок • Графика карандашом" },
+            { "name": "Basel_021jpg.jpg", "url": "thumbs/Basel_021jpg.jpg", "fullUrl": "Basel_021jpg.jpg", "title": "Базель • Собор над Рейном", "subtitle": "Швейцария • Архитектурный этюд", "date": "Декабрь 2018 г.", "technique": "Оригинальный рисунок • Графика карандашом" },
+            { "name": "Bayern_02.jpg", "url": "thumbs/Bayern_02.jpg", "fullUrl": "Bayern_02.jpg", "title": "Ротенбург-об-дер-Таубер • Плёнляйн", "subtitle": "Германия • Баварский мотив", "date": "Май 2020 г.", "technique": "Оригинальный рисунок • Графика карандашом" },
+            { "name": "Brussels-12.jpg", "url": "thumbs/Brussels-12.jpg", "fullUrl": "Brussels-12.jpg", "title": "Брюссель • Собор Святых Михаила и Гудулы", "subtitle": "Бельгия • Европейская графика", "date": "Март 2025 г.", "technique": "Цифровая живопись • Авторский арт" },
+            { "name": "Budapest-2.jpg", "url": "thumbs/Budapest-2.jpg", "fullUrl": "Budapest-2.jpg", "title": "Будапешт • Церковь Матьяша", "subtitle": "Венгрия • Замковый холм", "date": "Апрель 2026 г.", "technique": "Оригинальная работа • Акварель, тушь" },
+            { "name": "Budapest.jpg", "url": "thumbs/Budapest.jpg", "fullUrl": "Budapest.jpg", "title": "Будапешт • Здание Парламента", "subtitle": "Венгрия • Панорама Дуная", "date": "Март 2026 г.", "technique": "Оригинальная работа • Акварель, тушь" },
+            { "name": "Cabin by a Lake.jpg", "url": "thumbs/Cabin%20by%20a%20Lake.jpg", "fullUrl": "Cabin%20by%20a%20Lake.jpg", "title": "Домик у горного озера", "subtitle": "Альпийский пейзаж • Лесная тишина", "date": "Ноябрь 2024 г.", "technique": "Цифровая живопись • Авторский арт" },
+            { "name": "Castle_03_PS.jpg", "url": "thumbs/Castle_03_PS.jpg", "fullUrl": "Castle_03_PS.jpg", "title": "Замок Корвинов • Мост через ров", "subtitle": "Румыния • Готический замок Хуньяди", "date": "Февраль 2021 г.", "technique": "Оригинальный рисунок • Графика карандашом" },
+            { "name": "Castle_PS.jpg", "url": "thumbs/Castle_PS.jpg", "fullUrl": "Castle_PS.jpg", "title": "Средневековый замок на воде", "subtitle": "Архитектурный этюд • Замковый ансамбль", "date": "Февраль 2021 г.", "technique": "Оригинальный рисунок • Графика карандашом" },
+            { "name": "Cologne_1.jpg", "url": "thumbs/Cologne_1.jpg", "fullUrl": "Cologne_1.jpg", "title": "Кёльн • Панорама Рейна и собора", "subtitle": "Германия • Кёльнский собор", "date": "Июль 2024 г.", "technique": "Цифровая живопись • Авторский арт" },
+            { "name": "Dettelbach_02.jpg", "url": "thumbs/Dettelbach_02.jpg", "fullUrl": "Dettelbach_02.jpg", "title": "Деттельбах • Крепостные башни", "subtitle": "Германия • Франконский мотив", "date": "Апрель 2020 г.", "technique": "Оригинальный рисунок • Графика карандашом" },
+            { "name": "Dettelbah.jpg", "url": "thumbs/Dettelbah.jpg", "fullUrl": "Dettelbah.jpg", "title": "Деттельбах • Городские ворота", "subtitle": "Германия • Франконский мотив", "date": "Май 2024 г.", "technique": "Цифровая живопись • Авторский арт" },
+            { "name": "Drusk-1.jpg", "url": "thumbs/Drusk-1.jpg", "fullUrl": "Drusk-1.jpg", "title": "Друскининкай • Неоготический костёл", "subtitle": "Литва • Друскининкай", "date": "Март 2025 г.", "technique": "Цифровая живопись • Авторский арт" },
+            { "name": "Faroe Island.jpg", "url": "thumbs/Faroe%20Island.jpg", "fullUrl": "Faroe%20Island.jpg", "title": "Фареры • Водопад Мулафоссур", "subtitle": "Фарерские острова • Морской пейзаж", "date": "Декабрь 2024 г.", "technique": "Цифровая живопись • Авторский арт" },
+            { "name": "Grodno-3.jpg", "url": "thumbs/Grodno-3.jpg", "fullUrl": "Grodno-3.jpg", "title": "Гродно • Фарный костёл", "subtitle": "Беларусь • Архитектурный пейзаж", "date": "Июнь 2025 г.", "technique": "Оригинальная работа • Акварель, тушь" },
+            { "name": "Halfstadt 1.jpg", "url": "thumbs/Halfstadt%201.jpg", "fullUrl": "Halfstadt%201.jpg", "title": "Гальштат • Озёрная панорама", "subtitle": "Австрия • Альпийский Гальштат", "date": "Сентябрь 2024 г.", "technique": "Цифровая живопись • Авторский арт" },
+            { "name": "IMG_20250306_164506_577.jpg", "url": "thumbs/IMG_20250306_164506_577.jpg", "fullUrl": "IMG_20250306_164506_577.jpg", "title": "Брюссель • Этюд готического собора", "subtitle": "Бельгия • Европейская графика", "date": "Март 2025 г.", "technique": "Цифровая живопись • Авторский арт" },
+            { "name": "Luzern PS.jpg", "url": "thumbs/Luzern%20PS.jpg", "fullUrl": "Luzern%20PS.jpg", "title": "Люцерн • Часовенный мост Капелльбрюкке", "subtitle": "Швейцария • Озеро Люцерн", "date": "Декабрь 2018 г.", "technique": "Оригинальный рисунок • Графика карандашом" },
+            { "name": "Monschau 2.jpg", "url": "thumbs/Monschau%202.jpg", "fullUrl": "Monschau%202.jpg", "title": "Моншау • Фахверк на реке Рур", "subtitle": "Германия • Фахверковый Моншау", "date": "Март 2025 г.", "technique": "Цифровая живопись • Авторский арт" },
+            { "name": "Mountain cabin.jpg", "url": "thumbs/Mountain%20cabin.jpg", "fullUrl": "Mountain%20cabin.jpg", "title": "Горная хижина ночью", "subtitle": "Ночной пейзаж • Зимние Альпы", "date": "Ноябрь 2024 г.", "technique": "Цифровая живопись • Авторский арт" },
+            { "name": "Mountain Lake-01.jpg", "url": "thumbs/Mountain%20Lake-01.jpg", "fullUrl": "Mountain%20Lake-01.jpg", "title": "Горное озеро на закате", "subtitle": "Пейзаж • Отражение вершин", "date": "Декабрь 2024 г.", "technique": "Цифровая живопись • Авторский арт" },
+            { "name": "Mountain Lake-02-B.jpg", "url": "thumbs/Mountain%20Lake-02-B.jpg", "fullUrl": "Mountain%20Lake-02-B.jpg", "title": "Горный фьорд в сумерках", "subtitle": "Пейзаж • Домик у горного озера", "date": "Декабрь 2024 г.", "technique": "Цифровая живопись • Авторский арт" },
+            { "name": "Munster-2.jpg", "url": "thumbs/Munster-2.jpg", "fullUrl": "Munster-2.jpg", "title": "Мюнстер • Церковь Святого Ламберта", "subtitle": "Германия • Вестфальский пейзаж", "date": "Июнь 2025 г.", "technique": "Оригинальная работа • Акварель, тушь" },
+            { "name": "Munster-3.jpg", "url": "thumbs/Munster-3.jpg", "fullUrl": "Munster-3.jpg", "title": "Мюнстер • Собор Святого Павла", "subtitle": "Германия • Вестфальский пейзаж", "date": "Июнь 2025 г.", "technique": "Оригинальная работа • Акварель, тушь" },
+            { "name": "Munster-4.jpg", "url": "thumbs/Munster-4.jpg", "fullUrl": "Munster-4.jpg", "title": "Мюнстер • Башня Юбервассеркирхе", "subtitle": "Германия • Вестфальский пейзаж", "date": "Июнь 2025 г.", "technique": "Оригинальная работа • Акварель, тушь" },
+            { "name": "Riga.jpg", "url": "thumbs/Riga.jpg", "fullUrl": "Riga.jpg", "title": "Рига • Ратушная площадь и Дом Черноголовых", "subtitle": "Латвия • Старая Рига", "date": "Ноябрь 2025 г.", "technique": "Оригинальная работа • Акварель, тушь" },
+            { "name": "Stockholm-2.jpg", "url": "thumbs/Stockholm-2.jpg", "fullUrl": "Stockholm-2.jpg", "title": "Стокгольм • Панорама Риддархольмена", "subtitle": "Швеция • Городской мотив", "date": "Июнь 2024 г.", "technique": "Цифровая живопись • Авторский арт" },
+            { "name": "Stockholm_PS.jpg", "url": "thumbs/Stockholm_PS.jpg", "fullUrl": "Stockholm_PS.jpg", "title": "Стокгольм • Городская ратуша", "subtitle": "Швеция • Набережная Меларен", "date": "Апрель 2019 г.", "technique": "Оригинальный рисунок • Графика карандашом" },
+            { "name": "Swiss_PS.jpg", "url": "thumbs/Swiss_PS.jpg", "fullUrl": "Swiss_PS.jpg", "title": "Швейцарские Альпы • Горное селение", "subtitle": "Швейцария • Альпийский пейзаж", "date": "Декабрь 2018 г.", "technique": "Оригинальный рисунок • Графика карандашом" },
+            { "name": "Tallin.jpg", "url": "thumbs/Tallin.jpg", "fullUrl": "Tallin.jpg", "title": "Таллинн • Вирусские ворота", "subtitle": "Эстония • Старый Таллинн", "date": "Апрель 2021 г.", "technique": "Оригинальный рисунок • Графика карандашом" },
+            { "name": "Tallin_01.jpg", "url": "thumbs/Tallin_01.jpg", "fullUrl": "Tallin_01.jpg", "title": "Таллинн • Башня Толстая Маргарита", "subtitle": "Эстония • Старый Таллинн", "date": "Июль 2025 г.", "technique": "Оригинальная работа • Акварель, тушь" },
+            { "name": "Tallin_02.jpg", "url": "thumbs/Tallin_02.jpg", "fullUrl": "Tallin_02.jpg", "title": "Таллинн • Башня Кик-ин-де-Кёк", "subtitle": "Эстония • Старый Таллинн", "date": "Август 2025 г.", "technique": "Оригинальная работа • Акварель, тушь" },
+            { "name": "Tallin_03.jpg", "url": "thumbs/Tallin_03.jpg", "fullUrl": "Tallin_03.jpg", "title": "Таллинн • Девичья башня Neitsitorn", "subtitle": "Эстония • Старый Таллинн", "date": "Август 2025 г.", "technique": "Оригинальная работа • Акварель, тушь" },
+            { "name": "Trakai2.jpg", "url": "thumbs/Trakai2.jpg", "fullUrl": "Trakai2.jpg", "title": "Тракай • Островной замок и парусник", "subtitle": "Литва • Островной замок", "date": "Октябрь 2025 г.", "technique": "Оригинальная работа • Акварель, тушь" },
+            { "name": "Uzės.jpg", "url": "thumbs/Uz%C4%97s.jpg", "fullUrl": "Uz%C4%97s.jpg", "title": "Юзес • Арочный мост и замок", "subtitle": "Франция • Прованс", "date": "Апрель 2022 г.", "technique": "Оригинальный рисунок • Графика карандашом" },
+            { "name": "Вильнюс_PS.jpg", "url": "thumbs/%D0%92%D0%B8%D0%BB%D1%8C%D0%BD%D1%8E%D1%81_PS.jpg", "fullUrl": "%D0%92%D0%B8%D0%BB%D1%8C%D0%BD%D1%8E%D1%81_PS.jpg", "title": "Вильнюс • Кафедральная площадь и колокольня", "subtitle": "Литва • Старый город", "date": "Май 2019 г.", "technique": "Оригинальный рисунок • Графика карандашом" },
+            { "name": "Гродно1_PS.jpg", "url": "thumbs/%D0%93%D1%80%D0%BE%D0%B4%D0%BD%D0%BE1_PS.jpg", "fullUrl": "%D0%93%D1%80%D0%BE%D0%B4%D0%BD%D0%BE1_PS.jpg", "title": "Гродно • Старый мост через Неман", "subtitle": "Беларусь • Архитектурный пейзаж", "date": "Май 2019 г.", "technique": "Оригинальный рисунок • Графика карандашом" },
+            { "name": "Гродно2_PS.jpg", "url": "thumbs/%D0%93%D1%80%D0%BE%D0%B4%D0%BD%D0%BE2_PS.jpg", "fullUrl": "%D0%93%D1%80%D0%BE%D0%B4%D0%BD%D0%BE2_PS.jpg", "title": "Гродно • Фарный костёл и городская площадь", "subtitle": "Беларусь • Исторический мотив", "date": "Май 2019 г.", "technique": "Оригинальный рисунок • Графика карандашом" },
+            { "name": "Гродно3_PS.jpg", "url": "thumbs/%D0%93%D1%80%D0%BE%D0%B4%D0%BD%D0%BE3_PS.jpg", "fullUrl": "%D0%93%D1%80%D0%BE%D0%B4%D0%BD%D0%BE3_PS.jpg", "title": "Гродно • Панорама крыш старого города", "subtitle": "Беларусь • Архитектурный пейзаж", "date": "Май 2019 г.", "technique": "Оригинальный рисунок • Графика карандашом" },
+            { "name": "Гусар_PS.jpg", "url": "thumbs/%D0%93%D1%83%D1%81%D0%B0%D1%80_PS.jpg", "fullUrl": "%D0%93%D1%83%D1%81%D0%B0%D1%80_PS.jpg", "title": "Крылатый гусар на боевом коне", "subtitle": "Исторический образ • Кавалерия", "date": "Май 2019 г.", "technique": "Оригинальный рисунок • Графика карандашом" },
+            { "name": "Старый замок.jpg", "url": "thumbs/%D0%A1%D1%82%D0%B0%D1%80%D1%8B%D0%B9%20%D0%B7%D0%B0%D0%BC%D0%BE%D0%BA.jpg", "fullUrl": "%D0%A1%D1%82%D0%B0%D1%80%D1%8B%D0%B9%20%D0%B7%D0%B0%D0%BC%D0%BE%D0%BA.jpg", "title": "Гродно • Въезд в Старый замок", "subtitle": "Беларусь • Историческая архитектура", "date": "Июнь 2026 г.", "technique": "Оригинальная работа • Акварель, тушь" }
+        ];
+
+        // Standalone catalog lookup maps
+        const CATALOG_BY_NAME = {};
+        const PAINTING_DATES_MAP = {};
+        DEFAULT_PAINTINGS.forEach(p => {
+            PAINTING_DATES_MAP[p.name] = p.date;
+            CATALOG_BY_NAME[p.name] = p;
+        });
+
+        function getMetaForFile(filename) {
+            const entry = CATALOG_BY_NAME[filename];
+            if (entry) {
+                return {
+                    title: entry.title,
+                    subtitle: entry.subtitle,
+                    date: entry.date,
+                    technique: entry.technique
+                };
+            }
+            let title = filename.replace(/\.(jpe?g|png|webp)$/i, '');
+            title = title.replace(/^\d+[\._]\d*[\._]?\s*/g, '').replace(/[\s_]+PS$/i, '').trim();
+            return {
+                title: title || filename,
+                subtitle: getPaintingSubtitle(title, filename),
+                date: getPaintingDate(filename),
+                technique: 'Оригинальная работа • Авторская графика'
+            };
+        }
+
+        function getPaintingDate(filename) {
+            if (PAINTING_DATES_MAP[filename]) return PAINTING_DATES_MAP[filename];
+            const matchFn = filename.match(/^(\d{2})\.(\d{2})\b/);
+            if (matchFn) {
+                const months = ['', 'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+                const yr = '20' + matchFn[1];
+                const mo = parseInt(matchFn[2], 10);
+                if (mo >= 1 && mo <= 12) return `${months[mo]} ${yr} г.`;
+            }
+            return '';
+        }
+
+        /* ----------------------------------------------------
+           1.5. INTERNATIONALIZATION & ENGLISH TRANSLATIONS (RU / EN)
+        ---------------------------------------------------- */
+        const CATALOG_EN = {
+            "03_Гродно-4.2.jpg": { title: "Grodno • Bernardine Monastery Church", subtitle: "Belarus • Architectural Landscape" },
+            "25.04 Stockholm.jpg": { title: "Stockholm • Riddarholmen", subtitle: "Sweden • Cityscape" },
+            "25.06 Vilnius-2.jpg": { title: "Vilnius • St. Anne's Church", subtitle: "Lithuania • Old Town" },
+            "25.06 Vilnius.jpg": { title: "Vilnius • Old Town Street", subtitle: "Lithuania • Old Town" },
+            "26.02 Saphir.jpg": { title: "Saphir Resort • Seascape Motif", subtitle: "Coastal Resort • Architectural Art" },
+            "Ams_04 PS.jpg": { title: "Amsterdam • Oude Kerk", subtitle: "Netherlands • Amsterdam Canals" },
+            "Basel_021jpg.jpg": { title: "Basel • Cathedral over the Rhine", subtitle: "Switzerland • Architectural Study" },
+            "Bayern_02.jpg": { title: "Rothenburg ob der Tauber • Plönlein", subtitle: "Germany • Bavarian Motif" },
+            "Brussels-12.jpg": { title: "Brussels • Cathedral of St. Michael and St. Gudula", subtitle: "Belgium • European Graphics" },
+            "Budapest-2.jpg": { title: "Budapest • Matthias Church", subtitle: "Hungary • Castle Hill" },
+            "Budapest.jpg": { title: "Budapest • Hungarian Parliament Building", subtitle: "Hungary • Danube Panorama" },
+            "Cabin by a Lake.jpg": { title: "Mountain Lake Cabin", subtitle: "Alpine Landscape • Forest Serenity" },
+            "Castle_03_PS.jpg": { title: "Corvin Castle • Drawbridge over the Moat", subtitle: "Romania • Hunyadi Gothic Castle" },
+            "Castle_PS.jpg": { title: "Medieval Water Castle", subtitle: "Architectural Study • Castle Ensemble" },
+            "Cologne_1.jpg": { title: "Cologne • Rhine Panorama & Cathedral", subtitle: "Germany • Cologne Cathedral" },
+            "Dettelbach_02.jpg": { title: "Dettelbach • Fortress Towers", subtitle: "Germany • Franconian Motif" },
+            "Dettelbah.jpg": { title: "Dettelbach • Town Gate", subtitle: "Germany • Franconian Motif" },
+            "Drusk-1.jpg": { title: "Druskininkai • Neo-Gothic Church", subtitle: "Lithuania • Druskininkai" },
+            "Faroe Island.jpg": { title: "Faroe Islands • Coastal Cliffs", subtitle: "Faroe Islands • Seascape" },
+            "Grodno-3.jpg": { title: "Grodno • Old Castle Panorama", subtitle: "Belarus • Castle Complex" },
+            "Halfstadt 1.jpg": { title: "Hallstatt • Alpine Lake Landscape", subtitle: "Austria • Alpine Hallstatt" },
+            "IMG_20250306_164506_577.jpg": { title: "Forest Brook • Autumn Motif", subtitle: "Autumn Study • Forest Landscape" },
+            "Luzern PS.jpg": { title: "Lucerne • Chapel Bridge & Lake", subtitle: "Switzerland • Lake Lucerne" },
+            "Monschau 2.jpg": { title: "Monschau • Timber-Framed Riverfront", subtitle: "Germany • Timber-Framed Monschau" },
+            "Mountain cabin.jpg": { title: "Mountain Retreat • Alpine Cabin", subtitle: "Mountain Landscape • Alpine Cabin" },
+            "Mountain Lake-01.jpg": { title: "Alpine Lake • Morning Serenity", subtitle: "Mountain Landscape • Quiet Waters" },
+            "Mountain Lake-02-B.jpg": { title: "Mountain Lake • Peak Reflections", subtitle: "Mountain Landscape • Lake Reflection" },
+            "Munster-2.jpg": { title: "Münster • Historical Town Center", subtitle: "Germany • Historical Town Center" },
+            "Munster-3.jpg": { title: "Münster • Town Hall & St. Lamberti", subtitle: "Germany • Westphalian Motif" },
+            "Munster-4.jpg": { title: "Münster • St. Paul's Cathedral", subtitle: "Germany • St. Paul's Cathedral" },
+            "Riga.jpg": { title: "Old Riga • Historical Rooftops", subtitle: "Latvia • Old Town Riga" },
+            "Stockholm_PS.jpg": { title: "Stockholm • Gamla Stan Waterfront", subtitle: "Sweden • Gamla Stan Waterfront" },
+            "Stockholm-2.jpg": { title: "Stockholm • Gamla Stan Alleys", subtitle: "Sweden • Cityscape" },
+            "Swiss_PS.jpg": { title: "Swiss Alps • Mountain Village", subtitle: "Switzerland • Alpine Landscape" },
+            "Tallin_01.jpg": { title: "Tallinn • Fat Margaret Tower", subtitle: "Estonia • Old Town Tallinn" },
+            "Tallin_02.jpg": { title: "Tallinn • Kiek in de Kök Tower", subtitle: "Estonia • Old Town Tallinn" },
+            "Tallin_03.jpg": { title: "Tallinn • Maiden's Tower (Neitsitorn)", subtitle: "Estonia • Old Town Tallinn" },
+            "Tallin.jpg": { title: "Tallinn • Viru Gate", subtitle: "Estonia • Old Town Tallinn" },
+            "Trakai2.jpg": { title: "Trakai • Island Castle & Sailboat", subtitle: "Lithuania • Island Castle" },
+            "Uzės.jpg": { title: "Uzès • Arch Bridge and Castle", subtitle: "France • Provence" },
+            "Вильнюс_PS.jpg": { title: "Vilnius • Cathedral Square & Bell Tower", subtitle: "Lithuania • Old Town" },
+            "Гродно1_PS.jpg": { title: "Grodno • Old Bridge over the Neman", subtitle: "Belarus • Architectural Landscape" },
+            "Гродно2_PS.jpg": { title: "Grodno • Farny Cathedral & Town Square", subtitle: "Belarus • Historical Motif" },
+            "Гродно3_PS.jpg": { title: "Grodno • Old Town Rooftop Panorama", subtitle: "Belarus • Architectural Landscape" },
+            "Гусар_PS.jpg": { title: "Winged Hussar on Warhorse", subtitle: "Historical Imagery • Cavalry" },
+            "Старый замок.jpg": { title: "Grodno • Old Castle Gatehouse", subtitle: "Belarus • Historical Architecture" }
+        };
+
+        function formatDateEn(dateRu) {
+            if (!dateRu) return '';
+            const months = {
+                'Январь': 'January', 'Февраль': 'February', 'Март': 'March',
+                'Апрель': 'April', 'Май': 'May', 'Июнь': 'June',
+                'Июль': 'July', 'Август': 'August', 'Сентябрь': 'September',
+                'Октябрь': 'October', 'Ноябрь': 'November', 'Декабрь': 'December'
+            };
+            let res = dateRu;
+            for (const [ru, en] of Object.entries(months)) {
+                if (res.includes(ru)) {
+                    res = res.replace(ru, en);
+                    break;
+                }
+            }
+            return res.replace(/\s*г\./g, '').trim();
+        }
+
+        function formatTechniqueEn(techRu) {
+            if (!techRu) return 'Original Artwork • Graphic Art';
+            if (techRu.includes('Акварель, тушь') || techRu.includes('акварель')) {
+                return 'Original Artwork • Watercolor, Ink';
+            }
+            if (techRu.includes('карандаш') || techRu.includes('Графика карандашом')) {
+                return 'Original Drawing • Pencil Graphic';
+            }
+            if (techRu.includes('Цифровая живопись')) {
+                return 'Digital Painting • Original Art';
+            }
+            return 'Original Artwork • Author\'s Graphic';
+        }
+
+        const I18N = {
+            ru: {
+                brandTitle: '🏛️ 3D Арт-Галерея',
+                worksCount: '{n} работ',
+                btnCenter: '🎯 В центр',
+                btnCenterTitle: 'Вернуться в центр зала (Клавиша C или Пробел)',
+                btnDay: '💡 День',
+                btnEvening: '🌙 Вечер',
+                btnLightingTitle: 'Переключить освещение: День / Вечер (Клавиша L)',
+                btnShare: '🔗 Поделиться',
+                btnShareTitle: 'Поделиться галереей (QR-код и ссылка)',
+                btnLang: '🌐 RU',
+                btnLangTitle: 'Сменить язык / Switch language (RU / EN)',
+                btnHelp: '❓ Помощь',
+                btnHelpTitle: 'Справка по управлению и клавишам (Клавиша H)',
+                btnFullscreenTitle: 'На весь экран (F)',
+                
+                shareTitle: '🔗 Поделиться галереей',
+                shareSubtitle: 'Отсканируйте QR-код камерой смартфона или скопируйте ссылку, чтобы открыть выставку на другом устройстве:',
+                shareCopyBtn: 'Копировать',
+                shareCopied: 'Скопировано! ✓',
+                
+                helpTitle: 'Управление галереей',
+                helpSubtitle: 'Навигация для ПК, MacBook и сенсорных экранов',
+                helpMouseSection: '🖱️ Мышь и трекпад MacBook',
+                helpWheelBadge: 'Колесо мыши',
+                helpOr: 'или',
+                helpTrackpadBadge: '2 пальца',
+                helpWheelDesc: 'Шаг вперёд к картинам / назад в зал',
+                helpDragBadge: 'Зажать ЛКМ / ПКМ / СКМ',
+                helpDragDesc: 'Панорамный обзор зала (горизонт зафиксирован)',
+                helpClickBadge: 'Клик ЛКМ',
+                helpClickDesc: 'Раскрыть картину или табличку в полный экран',
+                
+                helpKeyboardSection: '⌨️ Клавиатура',
+                helpStrafeDesc: 'Обход зала по кругу вдоль стены',
+                helpPitchDesc: 'Взгляд на верхний / нижний ярус (автовозврат)',
+                helpHoldNote: '(удержание)',
+                helpSpaceBadge: 'Пробел',
+                helpCenterDesc: 'Вернуться в центр зала',
+                helpLightDesc: 'Переключить освещение: День / Вечер',
+                helpFullscreenDesc: 'Полноэкранный режим',
+                helpHelpDesc: 'Открыть / закрыть справку',
+                
+                helpTouchSection: '📱 Смартфоны и планшеты',
+                helpTouch1Badge: '1 палец (свайп)',
+                helpTouch1Desc: 'Осмотр зала вокруг себя',
+                helpTouch2Badge: '2 пальца (щипок)',
+                helpTouch2Desc: 'Шаг вперёд к картинам / назад',
+                helpTouchTapBadge: 'Тап по картине',
+                helpTouchTapDesc: 'Просмотр картины в высоком качестве',
+                
+                helpHint: '💡 <em>В зале можно подойти к стенам на 0.8 м, чтобы свободно читать экспликации и рассматривать мазки картин прямо со стены.</em>',
+                helpDoneBtn: 'Понятно',
+                defaultTechnique: 'Оригинальная работа • Авторская графика'
+            },
+            en: {
+                brandTitle: '🏛️ 3D Art Gallery',
+                worksCount: '{n} artworks',
+                btnCenter: '🎯 Center',
+                btnCenterTitle: 'Return to room center (Key C or Space)',
+                btnDay: '💡 Day',
+                btnEvening: '🌙 Evening',
+                btnLightingTitle: 'Toggle lighting: Day / Evening (Key L)',
+                btnShare: '🔗 Share',
+                btnShareTitle: 'Share gallery (QR code & link)',
+                btnLang: '🌐 EN',
+                btnLangTitle: 'Switch language / Сменить язык (EN / RU)',
+                btnHelp: '❓ Help',
+                btnHelpTitle: 'Controls & navigation guide (Key H)',
+                btnFullscreenTitle: 'Fullscreen (F)',
+                
+                shareTitle: '🔗 Share Gallery',
+                shareSubtitle: 'Scan the QR code with your phone camera or copy the link to view the exhibition on another device:',
+                shareCopyBtn: 'Copy link',
+                shareCopied: 'Copied! ✓',
+                
+                helpTitle: 'Gallery Navigation',
+                helpSubtitle: 'Controls for PC, MacBook & Touchscreens',
+                helpMouseSection: '🖱️ Mouse & MacBook Trackpad',
+                helpWheelBadge: 'Mouse wheel',
+                helpOr: 'or',
+                helpTrackpadBadge: '2 fingers',
+                helpWheelDesc: 'Step forward toward paintings / step backward',
+                helpDragBadge: 'Hold LMB / RMB / MMB',
+                helpDragDesc: 'Panoramic 360° room view (locked horizon)',
+                helpClickBadge: 'Click LMB',
+                helpClickDesc: 'Open artwork or plaque in full screen',
+                
+                helpKeyboardSection: '⌨️ Keyboard',
+                helpStrafeDesc: 'Walk around rotunda along the wall',
+                helpPitchDesc: 'Look at upper / lower tier (spring return on release)',
+                helpHoldNote: '(hold)',
+                helpSpaceBadge: 'Space',
+                helpCenterDesc: 'Glide back to center of the room',
+                helpLightDesc: 'Toggle lighting: Day / Evening',
+                helpFullscreenDesc: 'Toggle fullscreen mode',
+                helpHelpDesc: 'Open / close navigation help',
+                
+                helpTouchSection: '📱 Smartphones & Tablets',
+                helpTouch1Badge: '1 finger (drag)',
+                helpTouch1Desc: 'Look around the gallery',
+                helpTouch2Badge: '2 fingers (pinch)',
+                helpTouch2Desc: 'Step forward / backward',
+                helpTouchTapBadge: 'Tap on artwork',
+                helpTouchTapDesc: 'Open artwork in high-resolution zoom',
+                
+                helpHint: '💡 <em>Approach walls up to 0.8 m to read exhibition plaques and inspect brushwork directly on the wall.</em>',
+                helpDoneBtn: 'Got it',
+                defaultTechnique: 'Original Artwork • Graphic Art'
+            }
+        };
+
+        let currentLang = localStorage.getItem('gallery_lang') || 'ru';
+
+        function renderHelpContent(lang) {
+            const t = I18N[lang];
+            const helpBody = document.querySelector('#help-modal .help-body');
+            if (!helpBody) return;
+            helpBody.innerHTML = `
+                <!-- Group 1: Mouse & MacBook Trackpad -->
+                <div class="help-section">
+                    <div class="help-section-title">${t.helpMouseSection}</div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">${t.helpWheelBadge}</span> <span class="help-or">${t.helpOr}</span> <span class="key-badge">${t.helpTrackpadBadge}</span></div>
+                        <div class="help-desc">${t.helpWheelDesc}</div>
+                    </div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">${t.helpDragBadge}</span></div>
+                        <div class="help-desc">${t.helpDragDesc}</div>
+                    </div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">${t.helpClickBadge}</span></div>
+                        <div class="help-desc">${t.helpClickDesc}</div>
+                    </div>
+                </div>
+
+                <!-- Group 2: Keyboard -->
+                <div class="help-section">
+                    <div class="help-section-title">${t.helpKeyboardSection}</div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">←</span> <span class="key-badge">→</span> <span class="help-or">/</span> <span class="key-badge">A</span> <span class="key-badge">D</span></div>
+                        <div class="help-desc">${t.helpStrafeDesc}</div>
+                    </div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">↑</span> <span class="key-badge">↓</span> <span class="help-note">${t.helpHoldNote}</span></div>
+                        <div class="help-desc">${t.helpPitchDesc}</div>
+                    </div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">${t.helpSpaceBadge}</span> <span class="help-or">/</span> <span class="key-badge">C</span></div>
+                        <div class="help-desc">${t.helpCenterDesc}</div>
+                    </div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">L</span></div>
+                        <div class="help-desc">${t.helpLightDesc}</div>
+                    </div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">F</span></div>
+                        <div class="help-desc">${t.helpFullscreenDesc}</div>
+                    </div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">H</span> <span class="help-or">/</span> <span class="key-badge">Esc</span></div>
+                        <div class="help-desc">${t.helpHelpDesc}</div>
+                    </div>
+                </div>
+
+                <!-- Group 3: Touchscreens -->
+                <div class="help-section">
+                    <div class="help-section-title">${t.helpTouchSection}</div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">${t.helpTouch1Badge}</span></div>
+                        <div class="help-desc">${t.helpTouch1Desc}</div>
+                    </div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">${t.helpTouch2Badge}</span> <span class="help-or">/</span> <span class="key-badge">▲ ▼</span></div>
+                        <div class="help-desc">${t.helpTouch2Desc}</div>
+                    </div>
+                    <div class="help-row">
+                        <div class="help-keys"><span class="key-badge">${t.helpTouchTapBadge}</span></div>
+                        <div class="help-desc">${t.helpTouchTapDesc}</div>
+                    </div>
+                </div>
+
+                <!-- Hint footer -->
+                <div class="help-footer-hint">
+                    ${t.helpHint}
+                </div>
+            `;
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('gallery_lang', lang);
+            const t = I18N[lang];
+
+            // 1. Header bar
+            const brandCount = document.getElementById('art-count-badge');
+            if (brandCount) {
+                const count = (paintings ? Math.floor(paintings.length / 2) : 46);
+                const displayCount = (count > 0 ? count : 46);
+                brandCount.textContent = (lang === 'en' ? `${displayCount} artworks` : `${displayCount} работ`);
+            }
+            const brandTitleEl = document.querySelector('.brand-badge span:first-child');
+            if (brandTitleEl) brandTitleEl.textContent = t.brandTitle;
+
+            const btnCenter = document.getElementById('btn-center');
+            if (btnCenter) {
+                btnCenter.textContent = t.btnCenter;
+                btnCenter.title = t.btnCenterTitle;
+            }
+
+            const btnLighting = document.getElementById('btn-lighting');
+            if (btnLighting) {
+                btnLighting.textContent = (currentLightingMode === 'evening' ? t.btnEvening : t.btnDay);
+                btnLighting.title = t.btnLightingTitle;
+            }
+
+            const btnShare = document.getElementById('btn-share');
+            if (btnShare) {
+                btnShare.textContent = t.btnShare;
+                btnShare.title = t.btnShareTitle;
+            }
+
+            const btnLang = document.getElementById('btn-lang');
+            if (btnLang) {
+                btnLang.textContent = (lang === 'en' ? '🌐 EN' : '🌐 RU');
+                btnLang.title = t.btnLangTitle;
+            }
+
+            const btnHelp = document.getElementById('btn-open-help');
+            if (btnHelp) {
+                btnHelp.textContent = t.btnHelp;
+                btnHelp.title = t.btnHelpTitle;
+            }
+
+            const btnFs = document.getElementById('btn-fullscreen');
+            if (btnFs) btnFs.title = t.btnFullscreenTitle;
+
+            // 2. Share modal
+            const shareTitle = document.querySelector('#mobile-modal h2');
+            if (shareTitle) shareTitle.textContent = t.shareTitle;
+            const shareSub = document.querySelector('#mobile-modal p');
+            if (shareSub) shareSub.textContent = t.shareSubtitle;
+            const btnCopy = document.getElementById('btn-copy-url');
+            if (btnCopy) btnCopy.textContent = t.shareCopyBtn;
+
+            // 3. Help modal
+            const helpTitle = document.querySelector('#help-modal .help-title');
+            if (helpTitle) helpTitle.textContent = t.helpTitle;
+            const helpSub = document.querySelector('#help-modal .help-subtitle');
+            if (helpSub) helpSub.textContent = t.helpSubtitle;
+            const btnHelpDone = document.getElementById('btn-close-help-done');
+            if (btnHelpDone) btnHelpDone.textContent = t.helpDoneBtn;
+            renderHelpContent(lang);
+
+            // 4. Refresh zoom card if currently active
+            if (zoomModal && zoomModal.classList.contains('active') && currentZoomImgData) {
+                updateZoomContent(currentZoomImgData);
+            }
+        }
+
+        /* ----------------------------------------------------
+           2. GLOBAL VARIABLES & THREE.JS INITIALIZATION
+        ---------------------------------------------------- */
+        let scene, camera, renderer;
+        let paintings = [];
+        let raycaster, mouseVector;
+        let isPointerLocked = false;
+        let qrCodeInstance = null;
+        let lanServerUrl = window.location.href;
+
+        // Lighting & Environment state
+        let ambLight = null;
+        let spotLights = [];
+        let ceilingMesh = null;
+        let wallSegments = [];
+        let currentLightingMode = 'day';
+        let currentEnvironmentRadius = 15.0;
+
+        // Player movement physics variables (0.8m distance to wall allows close plaque reading)
+        const player = {
+            position: new THREE.Vector3(0, 3.8, 0),
+            velocity: new THREE.Vector3(),
+            radiusBound: 14.2,
+            pitch: 0,
+            yaw: 0
+        };
+
+        // Interactive Navigation & Drag-to-Look State (MacBook & Mouse compatible)
+        let isDragging = false;
+        let dragStartX = 0, dragStartY = 0;
+        let lastMouseX = 0, lastMouseY = 0;
+        let dragMoved = false;
+        let activeDragButton = 0;
+        let isResettingToCenter = false;
+        let hoveredPainting = null;
+        let touchDistanceStart = 0;
+
+        function resetToCenter() {
+            isResettingToCenter = true;
+        }
+
+        const keysPressed = {};
+        const touchState = { moveFwd: false, moveBwd: false, moveLeft: false, moveRight: false };
+
+        // DOM Elements
+        const container = document.getElementById('webgl-container');
+        const loaderOverlay = document.getElementById('loader-overlay');
+        const progressBarFill = document.getElementById('progress-bar-fill');
+        const loaderPercent = document.getElementById('loader-percent');
+        const loaderStatusText = document.getElementById('loader-status-text');
+        const artCountBadge = document.getElementById('art-count-badge');
+        const folderInput = document.getElementById('folder-input');
+        const crosshair = document.getElementById('crosshair');
+        const zoomModal = document.getElementById('zoom-modal');
+        const zoomImage = document.getElementById('zoom-image');
+        const zoomTitle = document.getElementById('zoom-title');
+        const zoomSubtitle = document.getElementById('zoom-subtitle');
+        const mobileModal = document.getElementById('mobile-modal');
+        const mobileUrlDisplay = document.getElementById('mobile-url-display');
+        const helpModal = document.getElementById('help-modal');
+
+        initThree();
+        animate();
+        startAutoLoading();
+        setLanguage(currentLang);
+
+        function initThree() {
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf4f3f0);
+            scene.fog = new THREE.FogExp2(0xf4f3f0, 0.015);
+
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.copy(player.position);
+
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            container.appendChild(renderer.domElement);
+
+            // Raycaster
+            raycaster = new THREE.Raycaster();
+            mouseVector = new THREE.Vector2(0, 0);
+
+            // Create 3D Gallery Environment (Walls, Floor, Ceiling, Lighting)
+            buildGalleryEnvironment();
+
+            // Event Listeners
+            window.addEventListener('resize', onWindowResize);
+            setupInputListeners();
+        }
+
+        /* ----------------------------------------------------
+           3. PROCEDURAL 60x60 CM GRANITE TILE TEXTURE
+        ---------------------------------------------------- */
+        function generateGraniteTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 1024;
+            const ctx = canvas.getContext('2d');
+
+            // Base grey background
+            ctx.fillStyle = '#7a7d84';
+            ctx.fillRect(0, 0, 1024, 1024);
+
+            // Speckle noise generator for realistic granite texture
+            const imgData = ctx.getImageData(0, 0, 1024, 1024);
+            const data = imgData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const noise = (Math.random() - 0.5) * 45;
+                data[i]     = Math.min(255, Math.max(0, data[i] + noise));
+                data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise));
+                data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise));
+            }
+            ctx.putImageData(imgData, 0, 0);
+
+            // Draw 60x60 tile grout lines
+            ctx.strokeStyle = '#4a4d52';
+            ctx.lineWidth = 6;
+            const tileSize = 256; // 4x4 tiles per 1024 texture block
+            for (let x = 0; x <= 1024; x += tileSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, 1024);
+                ctx.stroke();
+            }
+            for (let y = 0; y <= 1024; y += tileSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(1024, y);
+                ctx.stroke();
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(12, 12);
+            return texture;
+        }
+
+        /* ----------------------------------------------------
+           4. 3D GALLERY ENVIRONMENT & LIGHTING GENERATOR
+        ---------------------------------------------------- */
+        function setLightingMode(mode) {
+            currentLightingMode = mode;
+            const isEvening = (mode === 'evening');
+
+            const btn = document.getElementById('btn-lighting');
+            if (btn) {
+                const t = (typeof I18N !== 'undefined' && I18N[currentLang]) ? I18N[currentLang] : { btnEvening: '🌙 Вечер', btnDay: '💡 День' };
+                btn.innerHTML = isEvening ? t.btnEvening : t.btnDay;
+                if (isEvening) btn.classList.add('active');
+                else btn.classList.remove('active');
+            }
+
+            const bgHex = isEvening ? 0x0d0e12 : 0xf4f3f0;
+            scene.background.set(bgHex);
+            if (scene.fog) {
+                scene.fog.color.set(bgHex);
+                scene.fog.density = isEvening ? 0.022 : 0.015;
+            }
+
+            if (ambLight) {
+                ambLight.color.set(isEvening ? 0x242a38 : 0xfff8f0);
+                ambLight.intensity = isEvening ? 0.20 : 0.45;
+            }
+
+            spotLights.forEach(spot => {
+                spot.color.set(isEvening ? 0xffe2b8 : 0xfff5e0);
+                spot.intensity = isEvening ? 2.2 : 1.2;
+            });
+
+            if (ceilingMesh && ceilingMesh.material) {
+                ceilingMesh.material.color.set(isEvening ? 0x161820 : 0xffffff);
+            }
+
+            wallSegments.forEach(w => {
+                if (w.material) {
+                    w.material.color.set(isEvening ? 0x222630 : 0xf4f3f0);
+                }
+            });
+        }
+
+        function toggleLightingMode() {
+            setLightingMode(currentLightingMode === 'day' ? 'evening' : 'day');
+        }
+
+        function buildGalleryEnvironment(roomRadius = 15.0) {
+            currentEnvironmentRadius = roomRadius;
+            const roomHeight = 8.0;
+
+            if (window._galleryEnvGroup) {
+                scene.remove(window._galleryEnvGroup);
+            }
+            window._galleryEnvGroup = new THREE.Group();
+            spotLights = [];
+            wallSegments = [];
+
+            // 1. Floor: 60x60cm Grey Granite Tile
+            const floorGeo = new THREE.CircleGeometry(roomRadius * 1.05, 64);
+            const floorMat = new THREE.MeshStandardMaterial({
+                map: generateGraniteTexture(),
+                roughness: 0.85,
+                metalness: 0.1
+            });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            window._galleryEnvGroup.add(floor);
+
+            // 2. Ceiling: Solid Museum White
+            const ceilingGeo = new THREE.CircleGeometry(roomRadius * 1.05, 64);
+            const ceilingMat = new THREE.MeshStandardMaterial({
+                color: (currentLightingMode === 'evening') ? 0x161820 : 0xffffff,
+                roughness: 0.95
+            });
+            ceilingMesh = new THREE.Mesh(ceilingGeo, ceilingMat);
+            ceilingMesh.position.y = roomHeight;
+            ceilingMesh.rotation.x = Math.PI / 2;
+            window._galleryEnvGroup.add(ceilingMesh);
+
+            // 3. Walls: Light Off-White (#f4f3f0) Cylinder (64+ segments)
+            const numSegments = Math.max(64, Math.round(roomRadius * 4.2));
+            const segmentWidth = (2 * Math.PI * roomRadius) / numSegments * 1.02;
+            const wallGeo = new THREE.PlaneGeometry(segmentWidth, roomHeight);
+            const wallColor = (currentLightingMode === 'evening') ? 0x222630 : 0xf4f3f0;
+            const wallMat = new THREE.MeshStandardMaterial({
+                color: wallColor,
+                roughness: 0.9
+            });
+
+            for (let i = 0; i < numSegments; i++) {
+                const angle = (2 * Math.PI * i) / numSegments;
+                const wallSegment = new THREE.Mesh(wallGeo, wallMat.clone());
+                wallSegment.position.set(
+                    roomRadius * Math.sin(angle),
+                    roomHeight / 2,
+                    roomRadius * Math.cos(angle)
+                );
+                wallSegment.rotation.y = angle + Math.PI;
+                wallSegment.receiveShadow = true;
+                window._galleryEnvGroup.add(wallSegment);
+                wallSegments.push(wallSegment);
+            }
+
+            // 4. Ambient & Track Spotlight System
+            ambLight = new THREE.AmbientLight(
+                (currentLightingMode === 'evening') ? 0x242a38 : 0xfff8f0,
+                (currentLightingMode === 'evening') ? 0.20 : 0.45
+            );
+            window._galleryEnvGroup.add(ambLight);
+
+            // Track Spotlights along ceiling perimeter
+            const numSpotlights = Math.max(8, Math.round(roomRadius * 0.6));
+            const spotRadius = roomRadius * 0.8;
+
+            for (let i = 0; i < numSpotlights; i++) {
+                const angle = (2 * Math.PI * i) / numSpotlights;
+                const spotX = spotRadius * Math.sin(angle);
+                const spotZ = spotRadius * Math.cos(angle);
+
+                const spotLight = new THREE.SpotLight(
+                    (currentLightingMode === 'evening') ? 0xffe2b8 : 0xfff5e0,
+                    (currentLightingMode === 'evening') ? 2.2 : 1.2
+                );
+                spotLight.position.set(spotX, roomHeight - 0.5, spotZ);
+                spotLight.angle = Math.PI / 3.3;
+                spotLight.penumbra = 0.5;
+                spotLight.decay = 1.5;
+                spotLight.distance = roomRadius * 1.8;
+                spotLight.castShadow = true;
+
+                spotLight.shadow.mapSize.width = 1024;
+                spotLight.shadow.mapSize.height = 1024;
+                spotLight.shadow.bias = -0.0003;
+
+                const targetObj = new THREE.Object3D();
+                targetObj.position.set(
+                    roomRadius * Math.sin(angle),
+                    4.0,
+                    roomRadius * Math.cos(angle)
+                );
+                window._galleryEnvGroup.add(targetObj);
+                spotLight.target = targetObj;
+
+                window._galleryEnvGroup.add(spotLight);
+                spotLights.push(spotLight);
+            }
+
+            scene.add(window._galleryEnvGroup);
+        }
+
+        /* ----------------------------------------------------
+           5. MUSEUM EXHIBITION PLAQUE TEXTURE GENERATOR
+        ---------------------------------------------------- */
+        function getPaintingSubtitle(title, filename = '') {
+            const fn = (filename + ' ' + (title || '')).toLowerCase();
+            if (fn.includes('grodno') || fn.includes('гродно')) return 'Беларусь • Архитектурный пейзаж';
+            if (fn.includes('stockholm')) return 'Швеция • Городской мотив';
+            if (fn.includes('vilnius') || fn.includes('вильнюс')) return 'Литва • Старый город';
+            if (fn.includes('ams')) return 'Нидерланды • Каналы Амстердама';
+            if (fn.includes('basel')) return 'Швейцария • Архитектурный этюд';
+            if (fn.includes('bayern')) return 'Германия • Баварский мотив';
+            if (fn.includes('brussels')) return 'Бельгия • Европейская графика';
+            if (fn.includes('budapest')) return 'Венгрия • Панорама Дуная';
+            if (fn.includes('cologne')) return 'Германия • Кёльнский собор';
+            if (fn.includes('dettelbach') || fn.includes('dettelbah')) return 'Германия • Франконский мотив';
+            if (fn.includes('drusk')) return 'Литва • Друскининкай';
+            if (fn.includes('faroe')) return 'Фарерские острова • Морской пейзаж';
+            if (fn.includes('halfstadt')) return 'Австрия • Альпийский Гальштат';
+            if (fn.includes('luzern')) return 'Швейцария • Озеро Люцерн';
+            if (fn.includes('monschau')) return 'Германия • Фахверковый Моншау';
+            if (fn.includes('munster')) return 'Германия • Вестфальский пейзаж';
+            if (fn.includes('riga')) return 'Латвия • Старая Рига';
+            if (fn.includes('swiss')) return 'Швейцарские Альпы • Пейзаж';
+            if (fn.includes('tallin')) return 'Эстония • Старый Таллинн';
+            if (fn.includes('trakai')) return 'Литва • Островной замок';
+            if (fn.includes('uzes') || fn.includes('uzės')) return 'Франция • Прованс';
+            if (fn.includes('castle')) return 'Архитектурный этюд • Замок';
+            if (fn.includes('cabin') || fn.includes('lake')) return 'Пейзаж • Домик у горного озера';
+            if (fn.includes('mountain')) return 'Горный пейзаж';
+            if (fn.includes('гусар')) return 'Исторический образ';
+            if (fn.includes('старый замок')) return 'Историческая архитектура • Замок';
+            if (fn.includes('saphir')) return 'Архитектурная графика';
+            return 'Живопись • Авторская графика';
+        }
+
+        function generatePlaqueTexture(title, subtitle, date, technique) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 360;
+            const ctx = canvas.getContext('2d');
+
+            // 1. Crisp white museum card plate
+            ctx.fillStyle = '#fcfbfa';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 2. Subtle beveled boundary outline
+            ctx.strokeStyle = '#d4d4d8';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
+
+            // 3. Fine divider line below header
+            ctx.strokeStyle = '#a1a1aa';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(48, 72);
+            ctx.lineTo(canvas.width - 48, 72);
+            ctx.stroke();
+
+            // 4. Header label
+            ctx.fillStyle = '#71717a';
+            ctx.font = '600 20px "Outfit", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Э К С П О З И Ц И Я', canvas.width / 2, 50);
+
+            // 5. Artwork Title
+            ctx.fillStyle = '#0f172a';
+            let titleFontSize = 48;
+            if (title.length > 18) titleFontSize = 38;
+            if (title.length > 26) titleFontSize = 30;
+            ctx.font = `700 ${titleFontSize}px "Outfit", sans-serif`;
+            ctx.fillText(title, canvas.width / 2, 146);
+
+            // 6. Geographic / Theme Subtitle
+            ctx.fillStyle = '#475569';
+            ctx.font = '500 25px "Outfit", sans-serif';
+            ctx.fillText(subtitle, canvas.width / 2, 204);
+
+            // 7. Date of creation (Option 1: separate line in format "Октябрь 2025 г.")
+            if (date) {
+                ctx.fillStyle = '#334155';
+                ctx.font = '600 23px "Outfit", sans-serif';
+                ctx.fillText(date, canvas.width / 2, 256);
+            }
+
+            // 8. Technique & medium
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '400 19px "Outfit", sans-serif';
+            ctx.fillText(technique || 'Оригинальная работа • Авторская графика', canvas.width / 2, 308);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.encoding = THREE.sRGBEncoding;
+            if (renderer && renderer.capabilities) {
+                texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            }
+            texture.minFilter = THREE.LinearMipmapLinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            texture.generateMipmaps = true;
+            return texture;
+        }
+
+        /* ----------------------------------------------------
+           6. 3D PAINTING CREATOR (FRAME + PASSE-PARTOUT + 3D PLAQUE)
+        ---------------------------------------------------- */
+        function create3DPainting(texture, aspect, x, y, z, rotationY, imgData) {
+            const baseHeight = 1.6;
+            let w = baseHeight * aspect;
+            let h = baseHeight;
+
+            if (w > 2.4) {
+                w = 2.4;
+                h = 2.4 / aspect;
+            }
+
+            const passeMargin = 0.18; // White cardboard passe-partout border
+            const matW = w + passeMargin * 2;
+            const matH = h + passeMargin * 2;
+
+            const frameDepth = 0.03; // 3cm extruded frame thickness
+            const frameBorder = 0.05; // 5cm metal profile width
+            const outerW = matW + frameBorder * 2;
+            const outerH = matH + frameBorder * 2;
+
+            const group = new THREE.Group();
+            group.position.set(x, y, z);
+            group.rotation.y = rotationY;
+
+            // 1. Brushed Aluminum 3D Frame
+            const frameGeo = new THREE.BoxGeometry(outerW, outerH, frameDepth);
+            const frameMat = new THREE.MeshStandardMaterial({
+                color: 0xd0d8e0,
+                metalness: 0.85,
+                roughness: 0.35
+            });
+            const frameMesh = new THREE.Mesh(frameGeo, frameMat);
+            frameMesh.position.z = frameDepth / 2;
+            frameMesh.castShadow = true;
+            frameMesh.receiveShadow = true;
+            group.add(frameMesh);
+
+            // 2. White Cardboard Passe-partout Matting
+            const matGeo = new THREE.PlaneGeometry(matW, matH);
+            const matMaterial = new THREE.MeshStandardMaterial({
+                color: 0xfafafa,
+                roughness: 0.95
+            });
+            const matMesh = new THREE.Mesh(matGeo, matMaterial);
+            matMesh.position.z = frameDepth + 0.001;
+            group.add(matMesh);
+
+            // 3. Painting Texture Quad
+            const paintGeo = new THREE.PlaneGeometry(w, h);
+            const paintMat = new THREE.MeshBasicMaterial({ map: texture });
+            const paintMesh = new THREE.Mesh(paintGeo, paintMat);
+            paintMesh.position.z = frameDepth + 0.002;
+            group.add(paintMesh);
+
+            // 4. Museum Exhibition 3D Plaque (Табличка под картиной) - STANDARDIZED UNIFORM SIZE
+            const meta = getMetaForFile(imgData.name || '');
+            const title = imgData.title || meta.title || imgData.name;
+            const subtitle = imgData.subtitle || meta.subtitle || getPaintingSubtitle(title, imgData.name);
+            const date = imgData.date || meta.date || getPaintingDate(imgData.name);
+            const technique = imgData.technique || meta.technique || 'Оригинальная работа • Авторская графика';
+            imgData.title = title;
+            imgData.subtitle = subtitle;
+            imgData.date = date;
+            imgData.technique = technique;
+
+            // Uniform standard museum plaque size across all artworks
+            const plaqueW = 0.58; // 58cm solid visible width
+            const plaqueH = 0.20; // 20cm height
+            const plaqueDepth = 0.012; // 1.2cm thickness
+            const plaqueMargin = 0.12; // 12cm distance below frame bottom
+            const plaqueY = -outerH / 2 - plaqueMargin - plaqueH / 2;
+
+            // Plaque brushed aluminum backing plate
+            const plaqueBackGeo = new THREE.BoxGeometry(plaqueW + 0.01, plaqueH + 0.01, plaqueDepth);
+            const plaqueBackMesh = new THREE.Mesh(plaqueBackGeo, frameMat);
+            plaqueBackMesh.position.set(0, plaqueY, plaqueDepth / 2);
+            plaqueBackMesh.castShadow = true;
+            plaqueBackMesh.receiveShadow = true;
+            group.add(plaqueBackMesh);
+
+            // Plaque museum card face
+            const plaqueTex = generatePlaqueTexture(title, subtitle, date, technique);
+            const plaqueFrontGeo = new THREE.PlaneGeometry(plaqueW, plaqueH);
+            const plaqueFrontMat = new THREE.MeshStandardMaterial({
+                map: plaqueTex,
+                roughness: 0.88,
+                metalness: 0.05
+            });
+            const plaqueFrontMesh = new THREE.Mesh(plaqueFrontGeo, plaqueFrontMat);
+            plaqueFrontMesh.position.set(0, plaqueY, plaqueDepth + 0.001);
+            plaqueFrontMesh.receiveShadow = true;
+            group.add(plaqueFrontMesh);
+
+            // Raycasting Target Containers
+            const sharedUserData = { imgData: imgData, texture: texture, aspect: aspect };
+            frameMesh.userData = sharedUserData;
+            plaqueFrontMesh.userData = sharedUserData;
+
+            paintings.push(frameMesh);
+            paintings.push(plaqueFrontMesh);
+
+            scene.add(group);
+        }
+
+        /* ----------------------------------------------------
+           7. IMAGE LOADING & GALLERY BUILDER WITH PROGRESS
+        ---------------------------------------------------- */
+        function buildGalleryWithImages(imageSources, onProgress, onComplete) {
+            // Remove existing paintings
+            paintings.forEach(p => {
+                if (p.parent && p.parent.parent) {
+                    p.parent.parent.remove(p.parent);
+                } else if (p.parent) {
+                    scene.remove(p.parent);
+                }
+            });
+            paintings = [];
+
+            const total = Math.min(imageSources.length, 120);
+            if (total === 0) {
+                if (onComplete) onComplete();
+                return;
+            }
+
+            artCountBadge.textContent = `${total} полотен`;
+
+            // Dynamic room scaling if collection grows beyond 46 artworks (maintains >= 3.8m frame spacing)
+            const paintingsPerRow = Math.max(Math.ceil(total / 2), 12);
+            const minRadius = (paintingsPerRow * 3.8) / (2 * Math.PI);
+            const calculatedRoomRadius = Math.max(15.0, minRadius + 0.11);
+            if (Math.abs(calculatedRoomRadius - currentEnvironmentRadius) > 0.1) {
+                buildGalleryEnvironment(calculatedRoomRadius);
+            }
+
+            const roomRadius = currentEnvironmentRadius - 0.11; // Balanced 11cm wall offset
+            player.radiusBound = currentEnvironmentRadius - 0.8; // 0.8m distance to wall allows close inspection of plaques and brushwork
+            const bottomRow = [];
+            const topRow = [];
+
+            imageSources.slice(0, total).forEach((src, idx) => {
+                if (idx % 2 === 0) bottomRow.push(src);
+                else topRow.push(src);
+            });
+
+            let loadedCount = 0;
+            function itemDone(item) {
+                loadedCount++;
+                if (onProgress) onProgress(loadedCount, total, item);
+                if (loadedCount >= total && onComplete) {
+                    setTimeout(onComplete, 200);
+                }
+            }
+
+            function populateRow(items, heightY, angleOffset = 0) {
+                const count = items.length;
+                if (count === 0) return;
+
+                items.forEach((item, i) => {
+                    const angle = (2 * Math.PI * i) / count + angleOffset;
+                    const posX = roomRadius * Math.sin(angle);
+                    const posZ = roomRadius * Math.cos(angle);
+                    const rotY = angle + Math.PI;
+
+                    const loader = new THREE.TextureLoader();
+                    loader.load(
+                        item.url,
+                        (tex) => {
+                            tex.encoding = THREE.sRGBEncoding;
+                            tex.minFilter = THREE.LinearFilter;
+                            const img = tex.image;
+                            const aspect = (img && img.width && img.height) ? (img.width / img.height) : 1.33;
+                            create3DPainting(tex, aspect, posX, heightY, posZ, rotY, item);
+                            itemDone(item);
+                        },
+                        undefined,
+                        (err) => {
+                            // If thumbnail failed (or thumbs/ not accessible), seamlessly fallback to full original
+                            if (item.fullUrl && item.fullUrl !== item.url) {
+                                loader.load(
+                                    item.fullUrl,
+                                    (texFull) => {
+                                        texFull.encoding = THREE.sRGBEncoding;
+                                        texFull.minFilter = THREE.LinearFilter;
+                                        const imgF = texFull.image;
+                                        const aspectF = (imgF && imgF.width && imgF.height) ? (imgF.width / imgF.height) : 1.33;
+                                        create3DPainting(texFull, aspectF, posX, heightY, posZ, rotY, item);
+                                        itemDone(item);
+                                    },
+                                    undefined,
+                                    () => {
+                                        console.warn("Could not load original image texture:", item.fullUrl);
+                                        itemDone(item);
+                                    }
+                                );
+                            } else {
+                                console.warn("Could not load image texture:", item.url, err);
+                                itemDone(item);
+                            }
+                        }
+                    );
+                });
+            }
+
+            populateRow(bottomRow, 3.0, 0);
+            populateRow(topRow, 5.5, Math.PI / Math.max(topRow.length, 1));
+        }
+
+        /* ----------------------------------------------------
+           8. AUTO-LOADER & INITIALIZATION CONTROLLER
+        ---------------------------------------------------- */
+        function startAutoLoading() {
+            const isFileProtocol = (window.location.protocol === 'file:');
+
+            if (isFileProtocol) {
+                // Show file:// protocol CORS restriction warning
+                document.getElementById('file-protocol-warning').classList.remove('hidden');
+                loaderStatusText.textContent = 'Требуется запуск через start.bat или выбор папки';
+                document.getElementById('progress-bar-container').style.display = 'none';
+                loaderPercent.style.display = 'none';
+                return;
+            }
+
+            // Fetch dynamic network info for mobile QR code
+            fetch('/api/network')
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.lanUrl) {
+                        lanServerUrl = data.lanUrl;
+                        updateMobileModal(lanServerUrl);
+                    }
+                })
+                .catch(() => {
+                    lanServerUrl = window.location.href;
+                    updateMobileModal(lanServerUrl);
+                });
+
+            // Try dynamic paintings list from server API first (cache-busting query prevents stale browser cache)
+            fetch('/api/paintings?t=' + Date.now(), { cache: 'no-store' })
+                .then(res => {
+                    if (!res.ok) throw new Error('API not available');
+                    return res.json();
+                })
+                .then(items => {
+                    if (Array.isArray(items) && items.length > 0) {
+                        startLoadingCollection(items);
+                    } else {
+                        tryLoadPaintingsJson();
+                    }
+                })
+                .catch(() => {
+                    // Fallback to paintings.json (for static hosting like GitHub Pages), then to DEFAULT_PAINTINGS
+                    tryLoadPaintingsJson();
+                });
+        }
+
+        function tryLoadPaintingsJson() {
+            fetch('paintings.json?t=' + Date.now(), { cache: 'no-store' })
+                .then(res => {
+                    if (!res.ok) throw new Error('paintings.json not found');
+                    return res.json();
+                })
+                .then(data => {
+                    if (data && typeof data === 'object') {
+                        const items = Object.entries(data).map(([filename, meta]) => {
+                            const encoded = encodeURIComponent(filename);
+                            return {
+                                name: filename,
+                                url: `thumbs/${encoded}`,
+                                fullUrl: encoded,
+                                title: meta.title || filename,
+                                subtitle: meta.subtitle || '',
+                                date: meta.date || '',
+                                technique: meta.technique || 'Оригинальная работа • Авторская графика'
+                            };
+                        });
+                        if (items.length > 0) {
+                            startLoadingCollection(items);
+                            return;
+                        }
+                    }
+                    startLoadingCollection(DEFAULT_PAINTINGS);
+                })
+                .catch(() => {
+                    startLoadingCollection(DEFAULT_PAINTINGS);
+                });
+        }
+
+        function startLoadingCollection(collection) {
+            collection.forEach(p => {
+                if (p.name) CATALOG_BY_NAME[p.name] = p;
+            });
+            loaderStatusText.textContent = 'Загрузка полотен в зал...';
+            buildGalleryWithImages(
+                collection,
+                (loaded, total, item) => {
+                    const pct = Math.round((loaded / total) * 100);
+                    progressBarFill.style.width = `${pct}%`;
+                    loaderPercent.textContent = `${pct}%`;
+                    loaderStatusText.textContent = `Размещение: ${item.title || item.name} (${loaded}/${total})`;
+                },
+                () => {
+                    loaderStatusText.textContent = 'Экспозиция готова!';
+                    progressBarFill.style.width = '100%';
+                    loaderPercent.textContent = '100%';
+                    setTimeout(() => {
+                        loaderOverlay.classList.add('hidden');
+                    }, 400);
+                }
+            );
+        }
+
+        /* ----------------------------------------------------
+           9. INPUT & MULTI-DEVICE LISTENERS
+        ---------------------------------------------------- */
+        function setupInputListeners() {
+            // Folder selection via input (Manual override)
+            folderInput.addEventListener('change', (e) => {
+                const files = Array.from(e.target.files).filter(f => f.type.startsWith('image/'));
+                if (files.length > 0) {
+                    const sources = files.map(f => {
+                        const meta = getMetaForFile(f.name);
+                        return {
+                            name: f.name,
+                            url: URL.createObjectURL(f),
+                            title: meta.title,
+                            subtitle: meta.subtitle,
+                            date: meta.date,
+                            technique: meta.technique
+                        };
+                    });
+
+                    loaderOverlay.classList.remove('hidden');
+                    document.getElementById('progress-bar-container').style.display = 'block';
+                    loaderPercent.style.display = 'block';
+                    document.getElementById('file-protocol-warning').classList.add('hidden');
+
+                    startLoadingCollection(sources);
+                }
+            });
+
+            // Drag & Drop anywhere on screen
+            window.addEventListener('dragover', (e) => e.preventDefault());
+            window.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                if (files.length > 0) {
+                    const sources = files.map(f => {
+                        const meta = getMetaForFile(f.name);
+                        return {
+                            name: f.name,
+                            url: URL.createObjectURL(f),
+                            title: meta.title,
+                            subtitle: meta.subtitle,
+                            date: meta.date,
+                            technique: meta.technique
+                        };
+                    });
+                    loaderOverlay.classList.remove('hidden');
+                    startLoadingCollection(sources);
+                }
+            });
+
+            // 1. Mouse Drag-to-Look (LMB, RMB, MMB) + Free Cursor (MacBook & PC compatible)
+            container.addEventListener('mousedown', (e) => {
+                if (zoomModal.classList.contains('active') || mobileModal.classList.contains('active') || helpModal.classList.contains('active') || !loaderOverlay.classList.contains('hidden')) return;
+                if (e.target.closest('#top-bar') || e.target.closest('.hud-btn') || e.target.closest('#touch-controls')) return;
+
+                isResettingToCenter = false;
+                isDragging = true;
+                activeDragButton = e.button; // 0 = LMB, 1 = MMB (Wheel), 2 = RMB
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                dragMoved = false;
+
+                if (e.button === 1 || e.button === 2) {
+                    e.preventDefault();
+                }
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                mouseVector.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouseVector.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+                if (isDragging) {
+                    const dx = e.clientX - lastMouseX;
+                    const dy = e.clientY - lastMouseY;
+                    lastMouseX = e.clientX;
+                    lastMouseY = e.clientY;
+
+                    if (Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY) > 5) {
+                        dragMoved = true;
+                    }
+
+                    if (dragMoved) {
+                        player.yaw -= dx * 0.0032;
+                        container.classList.add('grabbing');
+                    }
+                } else {
+                    // Hover raycasting (only when cursor is free and unpressed)
+                    if (loaderOverlay.classList.contains('hidden') && !zoomModal.classList.contains('active') && !mobileModal.classList.contains('active') && !helpModal.classList.contains('active')) {
+                        scene.updateMatrixWorld(true);
+                        raycaster.setFromCamera(mouseVector, camera);
+                        const intersects = raycaster.intersectObjects(paintings);
+                        if (intersects.length > 0) {
+                            hoveredPainting = intersects[0].object;
+                            container.style.cursor = 'pointer';
+                        } else {
+                            hoveredPainting = null;
+                            container.style.cursor = 'grab';
+                        }
+                    }
+                }
+            });
+
+            window.addEventListener('mouseup', (e) => {
+                if (!isDragging) return;
+
+                // Left click without dragging = open artwork Zoom modal
+                if (activeDragButton === 0 && !dragMoved) {
+                    if (!e.target.closest('#top-bar') && !e.target.closest('.hud-btn') && !e.target.closest('#touch-controls')) {
+                        const clickCoords = new THREE.Vector2(
+                            (e.clientX / window.innerWidth) * 2 - 1,
+                            -(e.clientY / window.innerHeight) * 2 + 1
+                        );
+                        scene.updateMatrixWorld(true);
+                        raycaster.setFromCamera(clickCoords, camera);
+                        const intersects = raycaster.intersectObjects(paintings);
+                        if (intersects.length > 0) {
+                            const clickedObj = intersects[0].object;
+                            if (clickedObj.userData && clickedObj.userData.imgData) {
+                                openZoom(clickedObj.userData.imgData);
+                            }
+                        }
+                    }
+                }
+
+                isDragging = false;
+                activeDragButton = null;
+                container.classList.remove('grabbing');
+                container.style.cursor = hoveredPainting ? 'pointer' : 'grab';
+            });
+
+            // Prevent browser context menu on right click inside 3D gallery
+            container.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+            });
+
+            // 2. Mouse Wheel & MacBook Trackpad Two-Finger Scroll (Dolly Walk)
+            window.addEventListener('wheel', (e) => {
+                if (zoomModal.classList.contains('active') || mobileModal.classList.contains('active') || helpModal.classList.contains('active') || !loaderOverlay.classList.contains('hidden')) return;
+                if (e.target.closest('#mobile-modal') || e.target.closest('#help-modal') || e.target.closest('.zoom-card') || e.target.closest('.help-card')) return;
+
+                e.preventDefault();
+                isResettingToCenter = false;
+
+                const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), player.yaw);
+                const deltaSign = Math.sign(e.deltaY);
+                // Delta < 0 = scroll up (step forward), Delta > 0 = scroll down (step backward)
+                const step = (deltaSign < 0 ? 0.65 : -0.65);
+                player.position.addScaledVector(forward, step);
+
+                const pXZ = new THREE.Vector2(player.position.x, player.position.z);
+                if (pXZ.length() > player.radiusBound) {
+                    pXZ.normalize().multiplyScalar(player.radiusBound);
+                    player.position.x = pXZ.x;
+                    player.position.z = pXZ.y;
+                }
+            }, { passive: false });
+
+            // 3. Keyboard navigation & Shortcuts
+            document.addEventListener('keydown', (e) => {
+                keysPressed[e.code] = true;
+
+                if (e.code === 'ArrowLeft' || e.code === 'ArrowRight' || e.code === 'ArrowUp' || e.code === 'ArrowDown' || e.code === 'Space') {
+                    e.preventDefault();
+                }
+
+                if (e.code === 'KeyC' || e.code === 'Space') {
+                    resetToCenter();
+                }
+                if (e.code === 'KeyF') toggleFullscreen();
+                if (e.code === 'KeyL') toggleLightingMode();
+                if (e.code === 'KeyH') toggleHelpModal();
+                if (e.code === 'Escape') {
+                    closeZoom();
+                    closeMobileModal();
+                    closeHelpModal();
+                }
+            });
+
+            document.addEventListener('keyup', (e) => {
+                keysPressed[e.code] = false;
+            });
+
+            // Zoom modal close click
+            zoomModal.addEventListener('click', closeZoom);
+            document.getElementById('btn-close-zoom').addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeZoom();
+            });
+
+            // Share / Mobile Modal open / close
+            const btnShare = document.getElementById('btn-share') || document.getElementById('btn-open-mobile');
+            if (btnShare) btnShare.addEventListener('click', openMobileModal);
+            document.getElementById('btn-close-mobile').addEventListener('click', closeMobileModal);
+            mobileModal.addEventListener('click', (e) => {
+                if (e.target === mobileModal) closeMobileModal();
+            });
+
+            // Language Switcher (RU / EN)
+            const btnLang = document.getElementById('btn-lang');
+            if (btnLang) {
+                btnLang.addEventListener('click', () => {
+                    const nextLang = (currentLang === 'ru' ? 'en' : 'ru');
+                    setLanguage(nextLang);
+                });
+            }
+
+            // Help Modal open / close
+            const btnOpenHelp = document.getElementById('btn-open-help');
+            if (btnOpenHelp) btnOpenHelp.addEventListener('click', toggleHelpModal);
+
+            const btnCloseHelp = document.getElementById('btn-close-help');
+            if (btnCloseHelp) btnCloseHelp.addEventListener('click', closeHelpModal);
+
+            const btnCloseHelpDone = document.getElementById('btn-close-help-done');
+            if (btnCloseHelpDone) btnCloseHelpDone.addEventListener('click', closeHelpModal);
+
+            helpModal.addEventListener('click', (e) => {
+                if (e.target === helpModal) closeHelpModal();
+            });
+
+            // Return to Center button
+            const btnCenter = document.getElementById('btn-center');
+            if (btnCenter) btnCenter.addEventListener('click', resetToCenter);
+
+            // Lighting toggle button
+            const btnLighting = document.getElementById('btn-lighting');
+            if (btnLighting) btnLighting.addEventListener('click', toggleLightingMode);
+
+            // Fullscreen button
+            document.getElementById('btn-fullscreen').addEventListener('click', toggleFullscreen);
+
+            // Copy Mobile URL button
+            document.getElementById('btn-copy-url').addEventListener('click', () => {
+                const btn = document.getElementById('btn-copy-url');
+                const t = (typeof I18N !== 'undefined' && I18N[currentLang]) ? I18N[currentLang] : { shareCopied: 'Скопировано! ✓', shareCopyBtn: 'Копировать' };
+                navigator.clipboard.writeText(lanServerUrl).then(() => {
+                    btn.textContent = t.shareCopied;
+                    setTimeout(() => { btn.textContent = t.shareCopyBtn; }, 2000);
+                }).catch(() => {
+                    prompt((currentLang === 'en' ? 'Copy the link manually:' : 'Скопируйте ссылку вручную:'), lanServerUrl);
+                });
+            });
+
+            // Mobile Touch Buttons (D-Pad)
+            setupTouchEvents('btn-up', 'moveFwd');
+            setupTouchEvents('btn-down', 'moveBwd');
+            setupTouchEvents('btn-left', 'moveLeft');
+            setupTouchEvents('btn-right', 'moveRight');
+
+            // 4. Mobile Touch Screen: 1-finger Look + 2-finger Pinch walk + Tap zoom
+            let touchStartX = 0, touchStartY = 0;
+            let touchMovedDist = 0;
+            let touchStartTime = 0;
+            let pinchStartDist = 0;
+
+            window.addEventListener('touchstart', (e) => {
+                if (loaderOverlay.classList.contains('hidden') && !zoomModal.classList.contains('active') && !helpModal.classList.contains('active')) {
+                    isResettingToCenter = false;
+                    if (e.touches.length === 1) {
+                        touchStartX = e.touches[0].clientX;
+                        touchStartY = e.touches[0].clientY;
+                        touchMovedDist = 0;
+                        touchStartTime = performance.now();
+                    } else if (e.touches.length === 2) {
+                        pinchStartDist = Math.hypot(
+                            e.touches[0].clientX - e.touches[1].clientX,
+                            e.touches[0].clientY - e.touches[1].clientY
+                        );
+                    }
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (loaderOverlay.classList.contains('hidden') && !zoomModal.classList.contains('active') && !helpModal.classList.contains('active')) {
+                    if (e.touches.length === 1) {
+                        const deltaX = e.touches[0].clientX - touchStartX;
+                        const deltaY = e.touches[0].clientY - touchStartY;
+                        touchMovedDist += Math.abs(deltaX) + Math.abs(deltaY);
+                        touchStartX = e.touches[0].clientX;
+                        touchStartY = e.touches[0].clientY;
+
+                        player.yaw -= deltaX * 0.0035;
+                    } else if (e.touches.length === 2 && pinchStartDist > 0) {
+                        const dist = Math.hypot(
+                            e.touches[0].clientX - e.touches[1].clientX,
+                            e.touches[0].clientY - e.touches[1].clientY
+                        );
+                        const pinchDelta = dist - pinchStartDist;
+                        if (Math.abs(pinchDelta) > 10) {
+                            const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), player.yaw);
+                            player.position.addScaledVector(forward, pinchDelta * 0.015);
+                            pinchStartDist = dist;
+
+                            const pXZ = new THREE.Vector2(player.position.x, player.position.z);
+                            if (pXZ.length() > player.radiusBound) {
+                                pXZ.normalize().multiplyScalar(player.radiusBound);
+                                player.position.x = pXZ.x;
+                                player.position.z = pXZ.y;
+                            }
+                        }
+                    }
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchend', (e) => {
+                if (e.touches.length < 2) pinchStartDist = 0;
+                const touchDuration = performance.now() - touchStartTime;
+                if (touchMovedDist < 12 && touchDuration < 350 && !zoomModal.classList.contains('active') && !helpModal.classList.contains('active') && loaderOverlay.classList.contains('hidden')) {
+                    if (e.target.closest('#top-bar') || e.target.closest('.touch-btn') || e.target.closest('#mobile-modal') || e.target.closest('#help-modal')) return;
+
+                    const tapCoords = new THREE.Vector2(
+                        (touchStartX / window.innerWidth) * 2 - 1,
+                        -(touchStartY / window.innerHeight) * 2 + 1
+                    );
+                    scene.updateMatrixWorld(true);
+                    raycaster.setFromCamera(tapCoords, camera);
+                    const intersects = raycaster.intersectObjects(paintings);
+                    if (intersects.length > 0) {
+                        const clickedObj = intersects[0].object;
+                        if (clickedObj.userData && clickedObj.userData.imgData) {
+                            openZoom(clickedObj.userData.imgData);
+                        }
+                    }
+                }
+            });
+        }
+
+        function setupTouchEvents(elementId, stateProp) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            el.addEventListener('touchstart', (e) => { e.preventDefault(); touchState[stateProp] = true; });
+            el.addEventListener('touchend', (e) => { e.preventDefault(); touchState[stateProp] = false; });
+            el.addEventListener('touchcancel', (e) => { e.preventDefault(); touchState[stateProp] = false; });
+        }
+
+        /* ----------------------------------------------------
+           10. MODALS & HUD CONTROLLERS
+        ---------------------------------------------------- */
+        let currentZoomImgData = null;
+
+        function updateZoomContent(imgData) {
+            currentZoomImgData = imgData;
+            const meta = getMetaForFile(imgData.name || '');
+            let title = imgData.title || meta.title || imgData.name;
+            let subtitle = imgData.subtitle || meta.subtitle || getPaintingSubtitle(title, imgData.name);
+            let date = imgData.date || meta.date || getPaintingDate(imgData.name);
+            let technique = imgData.technique || meta.technique || 'Оригинальная работа • Авторская графика';
+
+            if (currentLang === 'en') {
+                const en = (typeof CATALOG_EN !== 'undefined' && CATALOG_EN[imgData.name]) ? CATALOG_EN[imgData.name] : {};
+                title = en.title || imgData.titleEn || title;
+                subtitle = en.subtitle || imgData.subtitleEn || subtitle;
+                date = formatDateEn(date);
+                technique = formatTechniqueEn(technique);
+            }
+
+            zoomTitle.textContent = title;
+            zoomSubtitle.textContent = subtitle;
+            const dateEl = document.getElementById('zoom-date');
+            if (dateEl) {
+                dateEl.textContent = date || '';
+                dateEl.style.display = date ? 'block' : 'none';
+            }
+            const metaEl = document.getElementById('zoom-meta');
+            if (metaEl) {
+                metaEl.textContent = technique;
+            }
+        }
+
+        function openZoom(imgData) {
+            const previewUrl = imgData.url;
+            const fullUrl = imgData.fullUrl || imgData.url;
+
+            // 1. Immediately show the existing preview (no delay, no blank screen)
+            zoomImage.src = previewUrl;
+
+            // 2. Seamlessly lazy-load full resolution scan in background and swap
+            if (fullUrl && fullUrl !== previewUrl) {
+                const highResImg = new Image();
+                highResImg.onload = () => {
+                    if (zoomModal.classList.contains('active')) {
+                        zoomImage.src = fullUrl;
+                    }
+                };
+                highResImg.src = fullUrl;
+            }
+
+            updateZoomContent(imgData);
+
+            closeHelpModal();
+            zoomModal.classList.add('active');
+            if (document.pointerLockElement) document.exitPointerLock();
+        }
+
+        function closeZoom() {
+            currentZoomImgData = null;
+            zoomModal.classList.remove('active');
+        }
+
+        function openMobileModal() {
+            closeHelpModal();
+            mobileModal.classList.add('active');
+            if (document.pointerLockElement) document.exitPointerLock();
+        }
+
+        function closeMobileModal() {
+            mobileModal.classList.remove('active');
+        }
+
+        function openHelpModal() {
+            closeZoom();
+            closeMobileModal();
+            helpModal.classList.add('active');
+            if (document.pointerLockElement) document.exitPointerLock();
+        }
+
+        function closeHelpModal() {
+            helpModal.classList.remove('active');
+        }
+
+        function toggleHelpModal() {
+            if (helpModal.classList.contains('active')) {
+                closeHelpModal();
+            } else {
+                openHelpModal();
+            }
+        }
+
+        function updateMobileModal(url) {
+            mobileUrlDisplay.textContent = url;
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+
+            if (typeof QRCode !== 'undefined') {
+                qrCodeInstance = new QRCode(qrContainer, {
+                    text: url,
+                    width: 180,
+                    height: 180,
+                    colorDark: "#0d0e12",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            } else {
+                qrContainer.innerHTML = `<div style="font-size:12px;color:#64748b;padding:20px;">Введите адрес в браузере телефона</div>`;
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+            else document.exitFullscreen().catch(() => {});
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        /* ----------------------------------------------------
+           11. MAIN ANIMATION & PHYSICS LOOP
+        ---------------------------------------------------- */
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (!zoomModal.classList.contains('active') && !mobileModal.classList.contains('active') && !helpModal.classList.contains('active')) {
+                const moveSpeed = 0.12;
+                const right = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), player.yaw);
+                const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), player.yaw);
+
+                // Strafe left / right (ArrowLeft, ArrowRight, A, D, touch ◄/►) - walk around rotunda along wall
+                if (keysPressed['KeyA'] || keysPressed['ArrowLeft'] || touchState.moveLeft) {
+                    isResettingToCenter = false;
+                    player.position.addScaledVector(right, -moveSpeed);
+                }
+                if (keysPressed['KeyD'] || keysPressed['ArrowRight'] || touchState.moveRight) {
+                    isResettingToCenter = false;
+                    player.position.addScaledVector(right, moveSpeed);
+                }
+
+                // Step forward / backward (W, S, touch ▲/▼)
+                if (keysPressed['KeyW'] || touchState.moveFwd) {
+                    isResettingToCenter = false;
+                    player.position.addScaledVector(forward, moveSpeed);
+                }
+                if (keysPressed['KeyS'] || touchState.moveBwd) {
+                    isResettingToCenter = false;
+                    player.position.addScaledVector(forward, -moveSpeed);
+                }
+
+                // Head Pitch Tilt via Keyboard Arrows (Hold to look, spring return to horizon on release):
+                let targetPitch = 0;
+                if (keysPressed['ArrowUp']) {
+                    isResettingToCenter = false;
+                    targetPitch = 0.28; // ~ +16°: frames top tier comfortably without ceiling void
+                } else if (keysPressed['ArrowDown']) {
+                    isResettingToCenter = false;
+                    targetPitch = -0.28; // ~ -16°: frames lower tier & plaques
+                }
+                player.pitch += (targetPitch - player.pitch) * 0.12;
+                if (Math.abs(player.pitch) < 0.0005 && !keysPressed['ArrowUp'] && !keysPressed['ArrowDown']) {
+                    player.pitch = 0;
+                }
+            } else {
+                player.pitch += (0 - player.pitch) * 0.12;
+            }
+
+            // Smooth Reset to Center animation (triggered by button '🎯 В центр', Space, or KeyC)
+            if (isResettingToCenter) {
+                player.position.x += (0 - player.position.x) * 0.08;
+                player.position.z += (0 - player.position.z) * 0.08;
+                player.pitch += (0 - player.pitch) * 0.12;
+                if (Math.hypot(player.position.x, player.position.z) < 0.04) {
+                    player.position.x = 0;
+                    player.position.z = 0;
+                    player.pitch = 0;
+                    isResettingToCenter = false;
+                }
+            }
+
+            // Circular boundary clamping inside room (0.8m distance to wall allows close inspection)
+            const playerXZ = new THREE.Vector2(player.position.x, player.position.z);
+            if (playerXZ.length() > player.radiusBound) {
+                playerXZ.normalize().multiplyScalar(player.radiusBound);
+                player.position.x = playerXZ.x;
+                player.position.z = playerXZ.y;
+            }
+
+            camera.rotation.order = 'YXZ';
+            camera.rotation.set(player.pitch, player.yaw, 0);
+            camera.position.copy(player.position);
+
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>
