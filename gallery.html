@@ -969,7 +969,9 @@
             { "name": "Munster-2.jpg", "url": "thumbs/Munster-2.jpg", "fullUrl": "Munster-2.jpg", "title": "Мюнстер • Церковь Святого Ламберта", "subtitle": "Германия • Вестфальский пейзаж", "date": "Июнь 2025 г.", "technique": "Оригинальная работа • Акварель, тушь" },
             { "name": "Munster-3.jpg", "url": "thumbs/Munster-3.jpg", "fullUrl": "Munster-3.jpg", "title": "Мюнстер • Собор Святого Павла", "subtitle": "Германия • Вестфальский пейзаж", "date": "Июнь 2025 г.", "technique": "Оригинальная работа • Акварель, тушь" },
             { "name": "Munster-4.jpg", "url": "thumbs/Munster-4.jpg", "fullUrl": "Munster-4.jpg", "title": "Мюнстер • Башня Юбервассеркирхе", "subtitle": "Германия • Вестфальский пейзаж", "date": "Июнь 2025 г.", "technique": "Оригинальная работа • Акварель, тушь" },
+            { "name": "Munster-5.jpg", "url": "thumbs/Munster-5.jpg", "fullUrl": "Munster-5.jpg", "title": "Мюнстер • Прогулка по Зальцштрассе", "subtitle": "Германия • Вестфальский пейзаж", "date": "Май 2024 г.", "technique": "Цифровой рисунок • Авторский арт" },
             { "name": "Riga.jpg", "url": "thumbs/Riga.jpg", "fullUrl": "Riga.jpg", "title": "Рига • Ратушная площадь и Дом Черноголовых", "subtitle": "Латвия • Старая Рига", "date": "Ноябрь 2025 г.", "technique": "Оригинальная работа • Акварель, тушь" },
+            { "name": "Riga_01.jpg", "url": "thumbs/Riga_01.jpg", "fullUrl": "Riga_01.jpg", "title": "Рига • Панорама с Даугавы", "subtitle": "Латвия • Старая Рига", "date": "Июнь 2022 г.", "technique": "Оригинальный рисунок • Графика карандашом" },
             { "name": "Stockholm-2.jpg", "url": "thumbs/Stockholm-2.jpg", "fullUrl": "Stockholm-2.jpg", "title": "Стокгольм • Панорама Риддархольмена", "subtitle": "Швеция • Городской мотив", "date": "Июнь 2024 г.", "technique": "Цифровая живопись • Авторский арт" },
             { "name": "Stockholm_PS.jpg", "url": "thumbs/Stockholm_PS.jpg", "fullUrl": "Stockholm_PS.jpg", "title": "Стокгольм • Городская ратуша", "subtitle": "Швеция • Набережная Меларен", "date": "Апрель 2019 г.", "technique": "Оригинальный рисунок • Графика карандашом" },
             { "name": "Swiss_PS.jpg", "url": "thumbs/Swiss_PS.jpg", "fullUrl": "Swiss_PS.jpg", "title": "Швейцарские Альпы • Горное селение", "subtitle": "Швейцария • Альпийский пейзаж", "date": "Декабрь 2018 г.", "technique": "Оригинальный рисунок • Графика карандашом" },
@@ -1061,7 +1063,9 @@
             "Munster-2.jpg": { title: "Münster • Historical Town Center", subtitle: "Germany • Historical Town Center" },
             "Munster-3.jpg": { title: "Münster • Town Hall & St. Lamberti", subtitle: "Germany • Westphalian Motif" },
             "Munster-4.jpg": { title: "Münster • St. Paul's Cathedral", subtitle: "Germany • St. Paul's Cathedral" },
+            "Munster-5.jpg": { title: "Münster • Stroll along Salzstraße", subtitle: "Germany • Westphalian Motif" },
             "Riga.jpg": { title: "Old Riga • Historical Rooftops", subtitle: "Latvia • Old Town Riga" },
+            "Riga_01.jpg": { title: "Riga • Panorama from the Daugava", subtitle: "Latvia • Old Town Riga" },
             "Stockholm_PS.jpg": { title: "Stockholm • Gamla Stan Waterfront", subtitle: "Sweden • Gamla Stan Waterfront" },
             "Stockholm-2.jpg": { title: "Stockholm • Gamla Stan Alleys", subtitle: "Sweden • Cityscape" },
             "Swiss_PS.jpg": { title: "Swiss Alps • Mountain Village", subtitle: "Switzerland • Alpine Landscape" },
@@ -1104,6 +1108,9 @@
             }
             if (techRu.includes('карандаш') || techRu.includes('Графика карандашом')) {
                 return 'Original Drawing • Pencil Graphic';
+            }
+            if (techRu.includes('Цифровой рисунок')) {
+                return 'Digital Drawing • Original Art';
             }
             if (techRu.includes('Цифровая живопись')) {
                 return 'Digital Painting • Original Art';
@@ -1309,8 +1316,8 @@
             // 1. Header bar
             const brandCount = document.getElementById('art-count-badge');
             if (brandCount) {
-                const count = (paintings ? Math.floor(paintings.length / 2) : 46);
-                const displayCount = (count > 0 ? count : 46);
+                const count = (paintings && paintings.length > 0 ? Math.floor(paintings.length / 2) : (typeof DEFAULT_PAINTINGS !== 'undefined' ? DEFAULT_PAINTINGS.length : 48));
+                const displayCount = (count > 0 ? count : 48);
                 brandCount.textContent = (lang === 'en' ? `${displayCount} artworks` : `${displayCount} работ`);
             }
             const brandTitleEl = document.querySelector('.brand-badge span:first-child');
@@ -2043,7 +2050,11 @@
                                 title: meta.title || filename,
                                 subtitle: meta.subtitle || '',
                                 date: meta.date || '',
-                                technique: meta.technique || 'Оригинальная работа • Авторская графика'
+                                technique: meta.technique || 'Оригинальная работа • Авторская графика',
+                                titleEn: meta.titleEn,
+                                subtitleEn: meta.subtitleEn,
+                                dateEn: meta.dateEn,
+                                techniqueEn: meta.techniqueEn
                             };
                         });
                         if (items.length > 0) {
