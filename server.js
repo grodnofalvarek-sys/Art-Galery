@@ -4,7 +4,7 @@ const path = require('path');
 const os = require('os');
 const { exec } = require('child_process');
 
-let PORT = 3000;
+let PORT = 8080;
 const ROOT_DIR = __dirname;
 
 // MIME types for static file serving

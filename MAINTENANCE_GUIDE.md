@@ -13,7 +13,7 @@
 * **Настройки GitHub Pages**:  
   👉 `https://github.com/grodnofalvarek-sys/Art-Galery/settings/pages`
 * **Локальный запуск на компьютере**:  
-  Запуск через файл `start.bat` ➔ `http://localhost:3000`
+  Запуск через файл `start.bat` ➔ `http://localhost:8080`
 
 ---
 
